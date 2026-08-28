@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#161F35">
+<title>Hypertrophy Log — 12 Week Program</title>
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Hypertrophy Log">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root{
+  --navy:#161F35; --navy2:#1E2A47; --navy3:#253250;
+  --amber:#D9A441; --cream:#EDE7DA; --muted:#8B93A7;
+  --green:#5FA876; --line:#2A3654; --red:#B0452E;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#10172a;color:var(--cream);font-family:Inter,sans-serif}
+body{min-height:100vh}
+.app{max-width:520px;margin:0 auto;min-height:100vh;background:var(--navy);padding-bottom:92px}
+.disp{font-family:'Bebas Neue',sans-serif;letter-spacing:.04em}
+button,select,input{font-family:inherit}
+button{cursor:pointer}
+.tap:active{transform:scale(.97)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-thumb{background:#33405F;border-radius:5px}
+.safe-bottom{padding-bottom:env(safe-area-inset-bottom)}
+.glass{background:rgba(30,42,71,.82);backdrop-filter:blur(12px)}
+.card{background:var(--navy2);border:1px solid var(--line);border-radius:16px}
+.progress{height:7px;background:#33405F;border-radius:99px;overflow:hidden}
+.progress>div{height:100%;background:var(--green);border-radius:99px;transition:width .25s}
+.nav-btn{color:var(--muted)}
+.nav-btn.active{color:var(--amber)}
+.smallcaps{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.metric{background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:13px}
+input:focus,select:focus{outline:2px solid rgba(217,164,65,.45);outline-offset:1px}
+.set-dot{font-size:29px;line-height:1}
+.badge{border:1px solid rgba(217,164,65,.55);background:rgba(217,164,65,.10);color:var(--amber)}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.modal{width:100%;max-width:520px;max-height:86vh;overflow:auto;background:var(--navy2);border:1px solid var(--line);border-radius:20px 20px 0 0}
+.toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:80;background:#0f1729;border:1px solid var(--line);padding:10px 14px;border-radius:10px;font-size:12px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+</style>
+</head>
+<body>
+<div id="app" class="app"></div>
+
+<script>
+/* =========================
+   PROGRAM DATA
+========================= */
+const REPS={
+ "6-10":{f:[6,7,8,10],o:[7,8,9,10],p:[8,9,10],d:"8"},
+ "8-12":{f:[8,9,10,12],o:[9,10,11,12],p:[10,11,12],d:"10"},
+ "10-12":{f:[10,10,11,12],o:[10,11,12,12],p:[11,12,12],d:"10"},
+ "10-15":{f:[10,11,13,15],o:[11,12,14,15],p:[12,14,15],d:"12"},
+ "12-15":{f:[12,13,14,15],o:[13,14,15,15],p:[14,15,15],d:"12"},
+ "15-20":{f:[15,16,18,20],o:[16,17,19,20],p:[17,19,20],d:"15"},
+ "plank":{f:[45,50,55,60],o:[50,55,60,60],p:[55,60,60],d:"30-45",unit:"s"},
+ "fixed10":{f:[10,10,10,10],o:[10,10,10,10],p:[10,10,10],d:"10",perLeg:true}
+};
+function repLabel(range,phase,idx){
+ const r=REPS[range], unit=r.unit||"", leg=r.perLeg?"/leg":"";
+ return phase==="d"?`${r.d}${unit}${leg}`:`${r[phase][idx]}${unit}${leg}`;
+}
+function ex(code,name,tempo,range,sets,rir,rest,cues){
+ return {code,name,tempo,range,sets,rir,rest,cues};
+}
+const WORKOUTS=[
+ {key:"upperA",day:"MON",full:"Monday",name:"Upper A",focus:"Horizontal Push / Pull",color:"amber",exercises:[
+  ex("1","DB Bench Press","3-1-1","6-10",{f:4,o:5,p:5,d:2},{f:"2",o:"1",p:"1 (last set 0-1)",d:"3-4"},75,["Shoulder blades pinned back and down into the bench","Lower 3 sec to a stretch at chest level, brief pause","Drive up and squeeze pecs together at the top"]),
+  ex("2A","Incline DB Press","3-1-1","8-12",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1",p:"1",d:"3-4"},75,["Bench at 30-45°","Press slightly inward at the top and control the descent"]),
+  ex("2B","One-Arm DB Row","2-1-2","8-12",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1",p:"1",d:"3-4"},75,["Flat back and brace the core","Drive the elbow toward the hip and squeeze the lat"]),
+  ex("3A","Pull-ups","2-0-2","6-10",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1",p:"1",d:"3-4"},75,["Full hang with active shoulders","Add weight once 10 reps are consistently easy"]),
+  ex("3B","Lateral Raise","2-1-2","12-15",{f:3,o:3,p:4,d:2},{f:"1",o:"1",p:"1 (last set 0)",d:"3-4"},75,["Slight elbow bend and lead with the elbow","Use a lighter weight and control the motion"]),
+  ex("3C","Rear Delt Fly","2-1-2","12-15",{f:3,o:3,p:4,d:2},{f:"1",o:"1",p:"1 (last set 0)",d:"3-4"},75,["Hinge forward with soft knees","Raise out to the sides and squeeze the rear delts"]),
+  ex("4A","Hammer Curl","2-0-2","10-15",{f:2,o:2,p:3,d:1},{f:"1",o:"1",p:"1 (last set 0)",d:"3-4"},60,["Elbows pinned to your sides","Full stretch at bottom and squeeze at the top"]),
+  ex("4B","Skull Crusher","2-1-2","10-15",{f:2,o:2,p:3,d:1},{f:"0-1",o:"0-1",p:"0-1 (last set 0)",d:"3-4"},60,["Keep elbows stationary","Allow a full stretch behind the head without flaring"]),
+  ex("4C","Standing DB Curl","2-0-2","10-15",{f:2,o:2,p:3,d:1},{f:"1",o:"1",p:"1 (last set 0)",d:"3-4"},60,["Elbows stay at your sides","Rotate to a palm-up grip as you curl"])
+ ]},
+ {key:"lowerA",day:"TUE",full:"Tuesday",name:"Lower A",focus:"Quad-Dominant & Posterior Chain",exercises:[
+  ex("1","Goblet / Front Squat","3-1-1","8-12",{f:4,o:4,p:4,d:2},{f:"2",o:"1",p:"1 (last set 0-1)",d:"3-4"},90,["Hold the dumbbell at chest height","Sit down and back, knees tracking over toes"]),
+  ex("2","Romanian Deadlift","3-1-1","8-12",{f:4,o:5,p:5,d:2},{f:"2",o:"1",p:"1 (last set 0-1)",d:"3-4"},90,["Soft knees and hinge at the hips","Keep dumbbells close and chase a hamstring stretch"]),
+  ex("3","Bulgarian Split Squat","2-1-1","fixed10",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1",p:"1",d:"3-4"},75,["Most weight stays on the front leg","Drop straight down with the knee tracking over the foot"]),
+  ex("4A","Standing Calf Raise","2-1-2","15-20",{f:4,o:4,p:4,d:2},{f:"1",o:"1",p:"1",d:"3-4"},60,["Get a full stretch at the bottom","Pause at the top of every rep"]),
+  ex("4B","Hanging Leg Raise","controlled","10-15",{f:3,o:3,p:3,d:2},{f:"1",o:"1",p:"1",d:"3-4"},60,["Curl the pelvis instead of swinging","Slow and controlled beats fast"])
+ ]},
+ {key:"upperB",day:"THU",full:"Thursday",name:"Upper B",focus:"Vertical Push / Pull",exercises:[
+  ex("1","Standing DB Overhead Press","2-1-1","6-10",{f:4,o:5,p:5,d:2},{f:"2",o:"1",p:"1 (last set 0-1)",d:"3-4"},90,["Brace the core and keep ribs down","Full lockout and controlled descent to ear height"]),
+  ex("2A","Dips","2-1-1","8-12",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1",p:"1",d:"3-4"},75,["Slight forward lean biases chest","Lower until shoulders are approximately level with elbows"]),
+  ex("2B","Chest-Supported DB Row","2-1-2","10-12",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1",p:"1",d:"3-4"},75,["Keep chest pinned to the bench","Row toward the lower ribs and squeeze"]),
+  ex("3A","Chin-ups","2-0-2","6-10",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1",p:"1",d:"3-4"},75,["Underhand grip increases biceps involvement","Lead with the elbows and use full range"]),
+  ex("3B","Rear Delt Fly","2-1-2","12-15",{f:3,o:3,p:4,d:2},{f:"1",o:"1",p:"1 (last set 0)",d:"3-4"},75,["Hinge forward with soft knees","Raise out to the sides and squeeze"]),
+  ex("3C","Lateral Raise","2-1-2","12-15",{f:3,o:3,p:4,d:2},{f:"1",o:"1",p:"1 (last set 0)",d:"3-4"},75,["Slight elbow bend","Keep the movement strict and controlled"]),
+  ex("4A","Incline DB Curl","2-1-2","10-15",{f:2,o:2,p:3,d:1},{f:"1",o:"1",p:"1 (last set 0)",d:"3-4"},60,["Keep elbows still","Let the arm hang behind you for a full stretch"]),
+  ex("4B","Overhead DB Triceps Ext.","2-1-2","10-15",{f:2,o:2,p:3,d:1},{f:"0-1",o:"0-1",p:"0-1 (last set 0)",d:"3-4"},60,["Point elbows forward","Use the long-head stretch behind the head"]),
+  ex("4C","Concentration Curl","2-1-2","10-15",{f:2,o:2,p:3,d:1},{f:"1",o:"1",p:"1 (last set 0)",d:"3-4"},60,["Brace the elbow against the inner thigh","Full stretch, squeeze, and no swinging"])
+ ]},
+ {key:"lowerB",day:"FRI",full:"Friday",name:"Lower B",focus:"Posterior Chain & Unilateral",exercises:[
+  ex("1","DB Walking Lunge","2-1-1","fixed10",{f:3,o:3,p:3,d:2},{f:"2",o:"1",p:"1",d:"3-4"},90,["Use a stride long enough for a stable front leg","Drive through the front heel"]),
+  ex("2","Single-Leg Romanian Deadlift","3-1-1","fixed10",{f:3,o:3,p:3,d:2},{f:"2",o:"1",p:"1",d:"3-4"},90,["Hinge at the hip","Use a light load until balance is automatic"]),
+  ex("3A","DB Hip Thrust","2-1-2","10-15",{f:3,o:3,p:3,d:2},{f:"1",o:"1",p:"1",d:"3-4"},75,["Upper back rests on the bench","Drive through the heels and squeeze glutes at the top"]),
+  ex("3B","Standing Calf Raise","2-1-2","15-20",{f:3,o:3,p:3,d:2},{f:"1",o:"1",p:"1",d:"3-4"},60,["Full stretch at bottom","Pause at the top"]),
+  ex("4","Weighted Plank","hold","plank",{f:3,o:3,p:3,d:2},{f:"1",o:"1",p:"1",d:"3-4"},45,["Straight line from shoulders to ankles","Brace as if preparing for a poke"])
+ ]}
+];
+
+function weekInfo(w){
+ if(w<=4)return{phaseKey:"f",idx:w-1,phaseName:"Foundation",desc:"Technique, capacity & consistency"};
+ if(w<=8)return{phaseKey:"o",idx:w-5,phaseName:"Overload",desc:"Progressive overload & harder sets"};
+ if(w<=11)return{phaseKey:"p",idx:w-9,phaseName:"Peak",desc:"High effort & controlled intensity"};
+ return{phaseKey:"d",idx:0,phaseName:"Deload",desc:"Recovery & resensitization"};
+}
+function weekNoteText(w,p){
+ if(p==="f")return"Build technique and capacity. When every set reaches the top of the rep target with good form, add weight next session.";
+ if(p==="o"&&w<=6)return"RIR tightens to 1. This should feel noticeably harder than Foundation.";
+ if(p==="o")return"On isolation work, use a drop set on the final set: hit the target, reduce load ~20%, then continue close to failure.";
+ if(p==="p")return"Take the last set of isolation exercises to true technical failure. Use only one intensity technique per exercise.";
+ return"Recovery week. Use roughly 60% of your current top-set load and stop every set 3–4 reps short of failure.";
+}
+function isSuperset(code){return/[A-Z]$/.test(code)}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+
+/* =========================
+   STORAGE / STATE
+========================= */
+const LS={
+ get(k,f){try{const v=localStorage.getItem(k);return v===null?f:JSON.parse(v)}catch(e){return f}},
+ set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},
+ del(k){try{localStorage.removeItem(k)}catch(e){}}
+};
+let state={
+ week:LS.get("hl:week",1),
+ workoutKey:LS.get("hl:workout","upperA"),
+ tab:LS.get("hl:tab","dashboard"),
+ openCue:null,
+ showWarmup:false,
+ modal:null,
+ toast:null,
+ timer:{running:false,seconds:0,total:0},
+ settings:{units:LS.get("hl:units","lb")}
+};
+let timerHandle=null;
+
+function getProgress(w,k){return LS.get(`hl:progress:${w}:${k}`,{})}
+function setProgress(w,k,d){LS.set(`hl:progress:${w}:${k}`,d)}
+function isComplete(w,k){return!!LS.get(`hl:completed:${w}:${k}`,false)}
+function setComplete(w,k){LS.set(`hl:completed:${w}:${k}`,new Date().toISOString())}
+function ensureProgressShape(w,workout){
+ const wi=weekInfo(w),data=getProgress(w,workout.key);let changed=false;
+ workout.exercises.forEach(e=>{
+  const n=e.sets[wi.phaseKey];
+  if(!data[e.code]){data[e.code]={checks:Array(n).fill(false),weight:""};changed=true}
+  else if(data[e.code].checks.length!==n){
+   const old=data[e.code].checks;
+   data[e.code].checks=Array.from({length:n},(_,i)=>old[i]||false);changed=true;
+  }
+ });
+ if(changed)setProgress(w,workout.key,data);
+ return data;
+}
+function allWorkoutStats(w,k){
+ const workout=WORKOUTS.find(x=>x.key===k),wi=weekInfo(w),data=ensureProgressShape(w,workout);
+ const total=workout.exercises.reduce((s,e)=>s+e.sets[wi.phaseKey],0);
+ const done=workout.exercises.reduce((s,e)=>s+data[e.code].checks.filter(Boolean).length,0);
+ return {total,done,pct:total?Math.round(done/total*100):0,complete:isComplete(w,k)};
+}
+function allProgramStats(){
+ let total=0,done=0,workoutsDone=0;
+ for(let w=1;w<=12;w++)WORKOUTS.forEach(k=>{
+  const s=allWorkoutStats(w,k.key);total+=s.total;done+=s.done;if(s.complete)workoutsDone++;
+ });
+ return {total,done,pct:total?Math.round(done/total*100):0,workoutsDone};
+}
+
+/* =========================
+   ACTIONS
+========================= */
+function navigate(tab){state.tab=tab;state.openCue=null;LS.set("hl:tab",tab);render()}
+function goWeek(d){state.week=Math.max(1,Math.min(12,state.week+d));LS.set("hl:week",state.week);state.openCue=null;render()}
+function setWeekDirect(v){state.week=Math.max(1,Math.min(12,+v));LS.set("hl:week",state.week);state.openCue=null;render()}
+function setWorkout(k){state.workoutKey=k;LS.set("hl:workout",k);state.openCue=null;render()}
+function toggleCue(c){state.openCue=state.openCue===c?null:c;render()}
+function toggleWarmup(){state.showWarmup=!state.showWarmup;render()}
+function setWeight(code,val){
+ const workout=WORKOUTS.find(w=>w.key===state.workoutKey),data=ensureProgressShape(state.week,workout);
+ data[code].weight=val;setProgress(state.week,workout.key,data);
+}
+function toggleSet(code,idx,rest){
+ const workout=WORKOUTS.find(w=>w.key===state.workoutKey),data=ensureProgressShape(state.week,workout);
+ const on=!data[code].checks[idx];data[code].checks[idx]=on;setProgress(state.week,workout.key,data);
+ if(on)startTimer(rest);
+ render();
+}
+function markComplete(){
+ setComplete(state.week,state.workoutKey);
+ showToast(`${WORKOUTS.find(w=>w.key===state.workoutKey).name} marked complete`);
+ render();
+}
+function startTimer(sec){clearTimeout(timerHandle);state.timer={running:true,seconds:sec,total:sec};tickTimer();render()}
+function stopTimer(){clearTimeout(timerHandle);state.timer={running:false,seconds:0,total:0};render()}
+function tickTimer(){
+ clearTimeout(timerHandle);
+ timerHandle=setTimeout(()=>{
+  if(state.timer.seconds>1){state.timer.seconds--;renderTimerOnly();tickTimer()}
+  else{state.timer.running=false;state.timer.seconds=0;try{navigator.vibrate&&navigator.vibrate([180,80,180])}catch(e){}showToast("Rest complete");render()}
+ },1000);
+}
+function showToast(msg){state.toast=msg;setTimeout(()=>{state.toast=null;render()},1800)}
+function resetCurrentWorkout(){
+ const k=`hl:progress:${state.week}:${state.workoutKey}`;LS.del(k);LS.del(`hl:completed:${state.week}:${state.workoutKey}`);
+ showToast("Current workout reset");render();
+}
+function resetAll(){
+ if(!confirm("Reset all workout progress, weights and completion history?"))return;
+ Object.keys(localStorage).filter(k=>k.startsWith("hl:")).forEach(k=>localStorage.removeItem(k));
+ state.week=1;state.workoutKey="upperA";state.tab="dashboard";state.openCue=null;
+ showToast("All progress reset");render();
+}
+function exportData(){
+ const data={version:1,exportedAt:new Date().toISOString(),week:state.week,workout:state.workoutKey,storage:{}};
+ Object.keys(localStorage).filter(k=>k.startsWith("hl:")).forEach(k=>data.storage[k]=LS.get(k,null));
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="hypertrophy-log-backup.json";a.click();
+ URL.revokeObjectURL(a.href);showToast("Backup exported");
+}
+function importData(input){
+ const file=input.files[0];if(!file)return;
+ const reader=new FileReader();
+ reader.onload=()=>{
+  try{
+   const data=JSON.parse(reader.result);
+   if(!data.storage)throw Error();
+   Object.entries(data.storage).forEach(([k,v])=>LS.set(k,v));
+   state.week=LS.get("hl:week",1);state.workoutKey=LS.get("hl:workout","upperA");
+   showToast("Backup restored");render();
+  }catch(e){alert("That backup file could not be read.")}
+ };
+ reader.readAsText(file);
+}
+
+/* =========================
+   UI HELPERS
+========================= */
+function header(title,subtitle,back=false){
+ return `<header class="px-4 pt-5 pb-4" style="background:linear-gradient(180deg,var(--navy2),var(--navy));border-bottom:1px solid var(--line)">
+  <div class="flex items-center gap-3">
+   ${back?`<button class="tap p-2 rounded-lg" style="background:var(--navy);border:1px solid var(--line)" onclick="navigate('dashboard')">←</button>`:""}
+   <div class="flex-1">
+    <div class="disp" style="font-size:31px;line-height:1;color:var(--amber)">${title}</div>
+    ${subtitle?`<div class="text-xs mt-1" style="color:var(--muted)">${subtitle}</div>`:""}
+   </div>
+  </div>
+ </header>`;
+}
+function navHTML(){
+ const items=[["dashboard","⌂","Home"],["program","▦","Program"],["workout","◆","Workout"],["history","◷","History"],["guide","?","Guide"]];
+ return `<nav class="fixed left-0 right-0 bottom-0 z-40 glass safe-bottom" style="border-top:1px solid var(--line);max-width:520px;margin:0 auto">
+  <div class="grid grid-cols-5 px-1 pt-2 pb-2">
+   ${items.map(([k,ic,label])=>`<button class="nav-btn ${state.tab===k?"active":""} tap flex flex-col items-center gap-0.5" onclick="navigate('${k}')"><span style="font-size:18px">${ic}</span><span class="text-[10px] font-bold">${label}</span></button>`).join("")}
+  </div>
+ </nav>`;
+}
+function weekSelector(){
+ const w=state.week,wi=weekInfo(w);
+ return `<div class="flex items-center gap-2">
+  <button class="tap p-2 rounded-lg" style="background:var(--navy2);border:1px solid var(--line)" onclick="goWeek(-1)">←</button>
+  <select class="flex-1 rounded-lg px-3 py-2 text-sm" style="background:var(--navy2);border:1px solid var(--line);color:var(--cream)" onchange="setWeekDirect(this.value)">
+   ${Array.from({length:12},(_,i)=>i+1).map(x=>`<option value="${x}" ${x===w?"selected":""}>Week ${x} — ${weekInfo(x).phaseName}</option>`).join("")}
+  </select>
+  <button class="tap p-2 rounded-lg" style="background:var(--navy2);border:1px solid var(--line)" onclick="goWeek(1)">→</button>
+ </div>`;
+}
+function phaseBadge(w){
+ const wi=weekInfo(w);
+ return `<span class="badge text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full">${wi.phaseName}</span>`;
+}
+function timerBarHTML(){
+ const t=state.timer;
+ if(t.running){
+  const r=18,c=2*Math.PI*r,offset=c*(1-t.seconds/t.total);
+  return `<div id="timerBar" class="fixed left-0 right-0 bottom-[64px] z-30 px-3" style="max-width:520px;margin:0 auto"><div class="rounded-xl p-3 glass" style="border:1px solid var(--amber);box-shadow:0 8px 30px rgba(0,0,0,.35)"><div class="flex items-center gap-3"><svg width="42" height="42" style="transform:rotate(-90deg);flex:none"><circle cx="21" cy="21" r="${r}" stroke="#33405F" stroke-width="4" fill="none"></circle><circle cx="21" cy="21" r="${r}" stroke="var(--amber)" stroke-width="4" fill="none" stroke-dasharray="${c}" stroke-dashoffset="${offset}" stroke-linecap="round"></circle></svg><div class="flex-1"><div class="smallcaps" style="color:var(--muted)">Rest Timer</div><div class="disp" style="font-size:25px;line-height:1">${t.seconds}s</div></div><button class="tap px-3 py-2 rounded-lg text-xs font-bold" style="background:var(--navy);border:1px solid var(--line)" onclick="stopTimer()">Stop</button></div></div></div>`;
+ }
+ return `<div id="timerBar" class="fixed left-0 right-0 bottom-[64px] z-30 px-3" style="max-width:520px;margin:0 auto"><div class="rounded-xl p-2 glass" style="border:1px solid var(--line)"><div class="flex gap-2">${[30,45,60,75,90].map(s=>`<button class="tap flex-1 py-2 rounded-lg text-[10px] font-bold" style="background:var(--navy);border:1px solid var(--line)" onclick="startTimer(${s})">${s}s</button>`).join("")}</div></div></div>`;
+}
+function renderTimerOnly(){const x=document.getElementById("timerBar");if(x)x.outerHTML=timerBarHTML()}
+
+/* =========================
+   PAGES
+========================= */
+function dashboardPage(){
+ const ps=allProgramStats(),w=state.week,wi=weekInfo(w);
+ const weekDone=WORKOUTS.filter(x=>allWorkoutStats(w,x.key).complete).length;
+ return `${header("HYpertrophy Log".toUpperCase(),"Your 12-week strength & hypertrophy companion")}
+ <main class="px-3 py-4 space-y-3">
+  <section class="rounded-2xl p-4" style="background:linear-gradient(135deg,#253250,#1E2A47);border:1px solid #3a4867">
+   <div class="smallcaps" style="color:var(--amber)">12-WEEK PROGRAM</div>
+   <div class="disp mt-1" style="font-size:42px;line-height:.95">BUILD. TRACK. PROGRESS.</div>
+   <p class="text-xs leading-relaxed mt-3" style="color:#c1c7d3">A structured 4-day program built around progressive overload, controlled tempo, intelligent effort and enough recovery to actually grow.</p>
+   <div class="flex gap-2 mt-4">
+    <button class="tap flex-1 py-2.5 rounded-xl text-xs font-extrabold" style="background:var(--amber);color:var(--navy)" onclick="navigate('workout')">Start Week ${w}</button>
+    <button class="tap px-4 py-2.5 rounded-xl text-xs font-extrabold" style="background:var(--navy);border:1px solid var(--line)" onclick="navigate('guide')">How it works</button>
+   </div>
+  </section>
+
+  <section class="card p-3">
+   <div class="flex items-center justify-between"><div><div class="smallcaps" style="color:var(--muted)">Current Week</div><div class="disp" style="font-size:30px">WEEK ${String(w).padStart(2,"0")} <span style="color:var(--amber)">${wi.phaseName}</span></div></div>${phaseBadge(w)}</div>
+   <div class="text-xs mt-1" style="color:var(--muted)">${wi.desc}</div>
+   <div class="progress mt-3"><div style="width:${weekDone/4*100}%"></div></div>
+   <div class="flex justify-between mt-2 text-[10px]" style="color:var(--muted)"><span>${weekDone}/4 workouts completed</span><span>${Math.round(weekDone/4*100)}%</span></div>
+  </section>
+
+  <section class="grid grid-cols-3 gap-2">
+   <div class="metric p-3"><div class="smallcaps" style="color:var(--muted)">Program</div><div class="disp mt-1" style="font-size:27px">${ps.pct}%</div><div class="text-[10px]" style="color:var(--muted)">sets logged</div></div>
+   <div class="metric p-3"><div class="smallcaps" style="color:var(--muted)">Workouts</div><div class="disp mt-1" style="font-size:27px">${ps.workoutsDone}</div><div class="text-[10px]" style="color:var(--muted)">of 48</div></div>
+   <div class="metric p-3"><div class="smallcaps" style="color:var(--muted)">Phase</div><div class="disp mt-1" style="font-size:21px">${wi.phaseName}</div><div class="text-[10px]" style="color:var(--muted)">week ${w}</div></div>
+  </section>
+
+  <section class="card p-3">
+   <div class="flex justify-between items-center mb-3"><div class="font-bold">This Week</div><button class="text-xs font-bold" style="color:var(--amber)" onclick="navigate('program')">View program →</button></div>
+   <div class="grid grid-cols-4 gap-1.5">
+    ${WORKOUTS.map(x=>{const s=allWorkoutStats(w,x.key);return`<button class="tap rounded-xl p-2 text-center" style="background:var(--navy);border:1px solid ${s.complete?"var(--green)":"var(--line)"}" onclick="setWorkout('${x.key}');navigate('workout')"><div class="text-[9px] font-bold" style="color:var(--muted)">${x.day}</div><div class="text-[11px] font-bold mt-1">${x.name.replace(" ","<br>")}</div><div class="text-lg mt-1" style="color:${s.complete?"var(--green)":"var(--muted)"}">${s.complete?"✓":s.pct+"%"}</div></button>`}).join("")}
+   </div>
+  </section>
+
+  <section class="rounded-2xl p-4" style="background:rgba(95,168,118,.08);border:1px solid rgba(95,168,118,.25)">
+   <div class="smallcaps" style="color:var(--green)">Today’s Rule</div>
+   <div class="font-bold mt-1">Quality reps beat ego reps.</div>
+   <div class="text-xs mt-1 leading-relaxed" style="color:var(--muted)">Keep the prescribed tempo, log the load, and only add weight when you can own the target reps with good technique.</div>
+  </section>
+ </main>`;
+}
+
+function programPage(){
+ const w=state.week,wi=weekInfo(w);
+ return `${header("PROGRAM","See the entire 12-week progression")}
+ <main class="px-3 py-4 space-y-3">
+  ${weekSelector()}
+  <section class="card p-4">
+   <div class="flex justify-between items-start"><div><div class="smallcaps" style="color:var(--amber)">Week ${w}</div><div class="disp" style="font-size:35px">${wi.phaseName}</div></div>${phaseBadge(w)}</div>
+   <p class="text-xs leading-relaxed mt-2" style="color:var(--muted)">${weekNoteText(w,wi.phaseKey)}</p>
+  </section>
+  <div class="space-y-2">
+   ${WORKOUTS.map(x=>{const s=allWorkoutStats(w,x.key);return`<button class="tap w-full text-left card p-3" onclick="setWorkout('${x.key}');navigate('workout')">
+    <div class="flex items-center gap-3"><div class="rounded-xl px-3 py-2 text-center" style="background:var(--navy)"><div class="smallcaps" style="color:var(--amber)">${x.day}</div><div class="text-[10px] font-bold">${x.full}</div></div>
+    <div class="flex-1"><div class="font-bold">${x.name}</div><div class="text-[10px] mt-1" style="color:var(--muted)">${x.focus}</div><div class="progress mt-2"><div style="width:${s.pct}%"></div></div></div>
+    <div class="text-right"><div class="font-bold text-sm">${s.complete?"✓":s.pct+"%"}</div><div class="text-[9px]" style="color:var(--muted)">${s.done}/${s.total}</div></div></div>
+   </button>`}).join("")}
+  </div>
+  <section class="card p-3">
+   <div class="font-bold text-sm">Phase map</div>
+   <div class="grid grid-cols-4 gap-2 mt-3">
+    ${[[1,4,"Foundation"],[5,8,"Overload"],[9,11,"Peak"],[12,12,"Deload"]].map(a=>`<div class="p-2 rounded-lg" style="background:var(--navy);border:1px solid var(--line)"><div class="text-[9px]" style="color:var(--muted)">W${a[0]}–${a[1]}</div><div class="font-bold text-[10px] mt-1">${a[2]}</div></div>`).join("")}
+   </div>
+  </section>
+ </main>`;
+}
+
+function workoutPage(){
+ const w=state.week,wi=weekInfo(w),workout=WORKOUTS.find(x=>x.key===state.workoutKey),data=ensureProgressShape(w,workout),s=allWorkoutStats(w,workout.key);
+ return `${header("WORKOUT",`${workout.full} · ${workout.name} · Week ${w}`)}
+ <main class="px-3 py-3 space-y-3">
+  <div class="flex gap-1.5">${WORKOUTS.map(x=>`<button class="tap flex-1 rounded-lg py-2 ${x.key===workout.key?"":"opacity-70"}" style="background:${x.key===workout.key?"var(--amber)":"var(--navy2)"};color:${x.key===workout.key?"var(--navy)":"var(--cream)"};border:1px solid ${x.key===workout.key?"var(--amber)":"var(--line)"}" onclick="setWorkout('${x.key}')"><div class="text-[9px] font-bold">${x.day}</div><div class="text-[10px] font-bold">${x.name}</div></button>`).join("")}</div>
+  ${weekSelector()}
+  <section class="card p-3">
+   <div class="flex justify-between items-center"><div><div class="smallcaps" style="color:var(--muted)">Session Progress</div><div class="disp" style="font-size:30px">${s.done}/${s.total} SETS</div></div><div class="text-right">${phaseBadge(w)}<div class="text-xl font-extrabold mt-1">${s.pct}%</div></div></div>
+   <div class="progress mt-2"><div style="width:${s.pct}%"></div></div>
+  </section>
+  <section class="rounded-xl p-3" style="background:rgba(217,164,65,.08);border:1px solid rgba(217,164,65,.3)">
+   <div class="flex justify-between items-center"><div class="smallcaps" style="color:var(--amber)">Coaching Note</div><button class="text-xs" style="color:var(--muted)" onclick="toggleWarmup()">${state.showWarmup?"Hide":"Warm-up"}</button></div>
+   <div class="text-xs leading-relaxed mt-1">${weekNoteText(w,wi.phaseKey)}</div>
+   ${state.showWarmup?`<div class="mt-3 pt-3 text-[11px] space-y-1" style="border-top:1px solid var(--line);color:var(--muted)"><div>• 3–5 min easy movement/cardio</div><div>• 1–2 ramp-up sets before the first compound lift</div><div>• Warm-ups should prepare you, not fatigue you</div></div>`:""}
+  </section>
+  <div class="space-y-2">
+   ${workout.exercises.map(e=>{
+    const n=e.sets[wi.phaseKey],reps=repLabel(e.range,wi.phaseKey,wi.idx),p=data[e.code],done=p.checks.filter(Boolean).length,all=done===n,cue=state.openCue===e.code;
+    return `<article class="card p-3" style="border-color:${all?"var(--green)":"var(--line)"}">
+     <div class="flex items-start gap-2"><div class="flex-1"><div class="flex items-center gap-2 flex-wrap"><span class="font-extrabold text-xs" style="color:var(--amber)">${e.code}</span><span class="font-bold text-sm">${esc(e.name)}</span>${isSuperset(e.code)?`<span class="text-[8px] px-1.5 py-0.5 rounded" style="background:#33405F;color:var(--muted)">SUPERSET</span>`:""}</div><div class="text-[10px] mt-1" style="color:var(--muted)">${n} × ${reps} · Tempo ${e.tempo} · RIR ${e.rir[wi.phaseKey]} · Rest ${e.rest}s</div></div><button onclick="toggleCue('${e.code}')" style="color:${cue?"var(--amber)":"var(--muted)"}">ⓘ</button></div>
+     ${cue?`<div class="rounded-lg p-2.5 mt-2 text-[10px] leading-relaxed space-y-1" style="background:var(--navy);border:1px solid var(--line)">${e.cues.map(c=>`<div>• ${esc(c)}</div>`).join("")}</div>`:""}
+     <div class="flex items-center gap-3 mt-3"><div><div class="text-[8px] smallcaps mb-1" style="color:var(--muted)">Load</div><input type="number" inputmode="decimal" placeholder="${state.settings.units}" value="${esc(p.weight)}" class="rounded-lg px-2 py-2 text-sm text-center" style="background:var(--navy);border:1px solid var(--line);width:68px;color:var(--cream)" oninput="setWeight('${e.code}',this.value)"></div>
+     <div class="flex-1"><div class="text-[8px] smallcaps mb-1 text-right" style="color:var(--muted)">${done}/${n} completed</div><div class="flex justify-end gap-1.5">${Array.from({length:n},(_,i)=>`<button class="tap" aria-label="Set ${i+1}" onclick="toggleSet('${e.code}',${i},${e.rest})"><span class="set-dot" style="color:${p.checks[i]?"var(--green)":"#3A4666"}">${p.checks[i]?"●":"○"}</span></button>`).join("")}</div></div></div>
+    </article>`;
+   }).join("")}
+  </div>
+  <div class="grid grid-cols-2 gap-2">
+   <button class="tap py-3 rounded-xl font-bold text-xs" style="background:${s.complete?"var(--green)":"var(--amber)"};color:var(--navy)" onclick="markComplete()">${s.complete?"✓ Completed":"Mark Workout Complete"}</button>
+   <button class="tap py-3 rounded-xl font-bold text-xs" style="background:var(--navy2);border:1px solid var(--line)" onclick="resetCurrentWorkout()">Reset Session</button>
+  </div>
+ </main>${timerBarHTML()}`;
+}
+
+function historyPage(){
+ const rows=[];
+ for(let w=1;w<=12;w++){
+  WORKOUTS.forEach(x=>{const s=allWorkoutStats(w,x.key);if(s.done||s.complete)rows.push({w,x,s})});
+ }
+ rows.reverse();
+ return `${header("HISTORY","Your logged sessions and completion record")}
+ <main class="px-3 py-4 space-y-3">
+  <section class="card p-4"><div class="smallcaps" style="color:var(--amber)">Program Completion</div><div class="flex items-end justify-between mt-1"><div class="disp" style="font-size:38px">${allProgramStats().pct}%</div><div class="text-xs" style="color:var(--muted)">${allProgramStats().workoutsDone}/48 workouts</div></div><div class="progress mt-2"><div style="width:${allProgramStats().pct}%"></div></div></section>
+  ${rows.length?`<div class="space-y-2">${rows.map(r=>`<button class="tap card p-3 w-full text-left" onclick="state.week=${r.w};state.workoutKey='${r.x.key}';navigate('workout')"><div class="flex items-center gap-3"><div class="text-center rounded-lg p-2" style="background:var(--navy);min-width:50px"><div class="smallcaps" style="color:var(--amber)">W${r.w}</div><div class="text-[9px]" style="color:var(--muted)">${r.x.day}</div></div><div class="flex-1"><div class="font-bold text-sm">${r.x.name}</div><div class="text-[10px] mt-1" style="color:var(--muted)">${r.s.done}/${r.s.total} sets logged</div></div><div class="font-bold">${r.s.complete?"✓":r.s.pct+"%"}</div></div></button>`).join("")}</div>`:`<section class="card p-6 text-center"><div class="disp" style="font-size:34px;color:var(--amber)">NO SESSIONS YET</div><p class="text-xs mt-2" style="color:var(--muted)">Complete your first set in the Workout tab and your history will appear here.</p><button class="tap mt-4 px-5 py-2.5 rounded-xl text-xs font-bold" style="background:var(--amber);color:var(--navy)" onclick="navigate('workout')">Start Workout</button></section>`}
+ </main>`;
+}
+
+function guidePage(){
+ return `${header("GUIDE","How to get the most from the program")}
+ <main class="px-3 py-4 space-y-2">
+  ${[
+   ["01","The goal","Build muscle while maintaining high-quality movement. The program uses moderate volume, controlled tempo and progressive overload."],
+   ["02","RIR","Reps in reserve = how many good reps you could still perform. Foundation starts easier; later phases intentionally push effort."],
+   ["03","Progression","First own the top of the rep range with the prescribed RIR. Then increase the load and work back up through the range."],
+   ["04","Tempo","The first number is the lowering phase, the second is the pause, and the third is the lifting phase. Example: 3-1-1 = lower 3 sec, pause 1, lift 1."],
+   ["05","Supersets","Exercises marked A/B/C are paired to save time. Move between the paired exercises, then take the prescribed rest before repeating."],
+   ["06","Rest","The timer starts automatically when you check a set. You can also use the manual timer at the bottom of the Workout screen."],
+   ["07","Deload","Week 12 is intentionally easier. Reduce load and effort so you can recover before starting another cycle."]
+  ].map(a=>`<section class="card p-4"><div class="flex gap-3"><div class="disp" style="font-size:27px;color:var(--amber)">${a[0]}</div><div><div class="font-bold">${a[1]}</div><div class="text-xs leading-relaxed mt-1" style="color:var(--muted)">${a[2]}</div></div></div></section>`).join("")}
+  <section class="card p-4">
+   <div class="font-bold">Quick settings & backup</div>
+   <div class="grid grid-cols-2 gap-2 mt-3">
+    <button class="tap py-2.5 rounded-lg text-xs font-bold" style="background:var(--navy);border:1px solid var(--line)" onclick="exportData()">Export Backup</button>
+    <label class="tap py-2.5 rounded-lg text-xs font-bold text-center" style="background:var(--navy);border:1px solid var(--line)">Import Backup<input type="file" accept=".json" class="hidden" onchange="importData(this)"></label>
+   </div>
+   <button class="tap w-full mt-2 py-2.5 rounded-lg text-xs font-bold" style="background:rgba(176,69,46,.12);border:1px solid rgba(176,69,46,.45);color:#df806d" onclick="resetAll()">Reset All Progress</button>
+  </section>
+ </main>`;
+}
+
+/* =========================
+   RENDER
+========================= */
+function render(){
+ const app=document.getElementById("app");
+ let page="";
+ if(state.tab==="dashboard")page=dashboardPage();
+ else if(state.tab==="program")page=programPage();
+ else if(state.tab==="workout")page=workoutPage();
+ else if(state.tab==="history")page=historyPage();
+ else page=guidePage();
+ app.innerHTML=page+navHTML()+(state.modal||"")+(state.toast?`<div class="toast">${esc(state.toast)}</div>`:"");
+}
+render();
+</script>
+
+<style>
+  .metric-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .metric-card{background:var(--navy2);border:1px solid var(--line);border-radius:14px;padding:13px}
+  .metric-value{font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1}
+  .mini-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+  .chip{display:inline-flex;align-items:center;border:1px solid var(--line);background:var(--navy);border-radius:999px;padding:5px 8px;font-size:10px}
+  .field{width:100%;background:var(--navy);border:1px solid var(--line);border-radius:9px;color:var(--cream);padding:9px 10px;font-size:13px;outline:none}
+  .field:focus{border-color:var(--amber)}
+  .primary{background:var(--amber);color:var(--navy);font-weight:800;border-radius:10px;padding:10px 13px}
+  .secondary{background:var(--navy2);color:var(--cream);border:1px solid var(--line);font-weight:700;border-radius:10px;padding:9px 12px}
+  .section-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.03em}
+  .progress-track{height:7px;background:#33405F;border-radius:99px;overflow:hidden}
+  .progress-fill{height:100%;background:var(--amber);border-radius:99px}
+  .pr-badge{color:var(--green);font-weight:800;font-size:10px;text-transform:uppercase}
+  .streak{font-family:'Bebas Neue',sans-serif;color:var(--amber);font-size:38px;line-height:1}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;display:flex;align-items:flex-end;justify-content:center}
+  .sheet{width:100%;max-width:28rem;background:var(--navy2);border:1px solid var(--line);border-radius:20px 20px 0 0;padding:18px;max-height:85vh;overflow:auto}
+</style>
+
+<script>
+/* ---- Advanced tracking layer ---- */
+const ADV = {
+  get(k,f){try{const v=localStorage.getItem(k);return v===null?f:JSON.parse(v)}catch(e){return f}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
+let advState = {
+  tab: ADV.get("hl:tab","home"),
+  bodyweight: ADV.get("hl:bodyweight",""),
+  measurements: ADV.get("hl:measurements",[]),
+  notes: ADV.get("hl:notes",{}),
+  sessionRPE: ADV.get("hl:rpe",{}),
+  history: ADV.get("hl:history",[]),
+  prs: ADV.get("hl:prs",{})
+};
+
+function saveAdv(){ADV.set("hl:bodyweight",advState.bodyweight);ADV.set("hl:measurements",advState.measurements);ADV.set("hl:notes",advState.notes);ADV.set("hl:rpe",advState.sessionRPE);ADV.set("hl:history",advState.history);ADV.set("hl:prs",advState.prs);ADV.set("hl:tab",advState.tab)}
+
+function switchTab(t){advState.tab=t;saveAdv();renderAdvanced()}
+function logBodyweight(v){advState.bodyweight=v;saveAdv();renderAdvanced()}
+function addMeasurement(){
+  const d=document.getElementById("mDate")?.value||new Date().toISOString().slice(0,10);
+  const w=document.getElementById("mWeight")?.value||"";
+  const wa=document.getElementById("mWaist")?.value||"";
+  if(!w && !wa)return;
+  advState.measurements.unshift({date:d,weight:w,waist:wa});
+  saveAdv();renderAdvanced();
+}
+function removeMeasurement(i){advState.measurements.splice(i,1);saveAdv();renderAdvanced()}
+function setSessionNote(v){advState.notes[`${state.week}:${state.workoutKey}`]=v;saveAdv()}
+function setRPE(v){advState.sessionRPE[`${state.week}:${state.workoutKey}`]=v;saveAdv()}
+function recordCompletedSession(){
+  const workout=WORKOUTS.find(w=>w.key===state.workoutKey);
+  const data=ensureProgressShape(state.week,workout), wi=weekInfo(state.week);
+  const sets=workout.exercises.reduce((s,e)=>s+e.sets[wi.phaseKey],0);
+  const done=workout.exercises.reduce((s,e)=>s+data[e.code].checks.filter(Boolean).length,0);
+  const key=`${state.week}:${state.workoutKey}`;
+  const existing=advState.history.find(x=>x.key===key);
+  const item={key,date:new Date().toISOString(),week:state.week,workout:workout.name,sets,done,rpe:advState.sessionRPE[key]||""};
+  if(existing)Object.assign(existing,item);else advState.history.unshift(item);
+  saveAdv();
+}
+
+function calculateStats(){
+  const all=advState.history;
+  const sessions=all.length;
+  const sets=all.reduce((a,x)=>a+x.done,0);
+  let streak=0;
+  const dates=[...new Set(all.map(x=>new Date(x.date).toDateString()))];
+  for(let i=0;i<dates.length;i++){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    if(dates.includes(d.toDateString()))streak++;else break;
+  }
+  return {sessions,sets,streak};
+}
+function getExerciseRecommendation(e,data,wi){
+  const p=data[e.code], n=e.sets[wi.phaseKey];
+  const reps=repLabel(e.range,wi.phaseKey,wi.idx);
+  if(p.checks.filter(Boolean).length<n)return `Finish ${n-p.checks.filter(Boolean).length} remaining set${n-p.checks.filter(Boolean).length===1?"":"s"}.`;
+  if(p.weight==="")return "Next time, log your working weight.";
+  return `Target ${reps}. If all sets reached the top of the range with good form, consider +2.5–5 lb next session.`;
+}
+function showExerciseHistory(code){
+  const rows=[];
+  for(let w=1;w<=12;w++){
+    for(const wk of WORKOUTS){
+      const e=wk.exercises.find(x=>x.code===code);
+      if(!e)continue;
+      const d=getProgress(w,wk.key);
+      if(d[code]?.weight)rows.push({week:w,workout:wk.name,weight:d[code].weight,done:d[code].checks.filter(Boolean).length});
+    }
+  }
+  const body=rows.length?rows.map(x=>`<div class="flex justify-between py-2 border-b" style="border-color:var(--line)"><span>W${x.week} · ${x.workout}</span><b>${esc(x.weight)} lb</b></div>`).join(""):`<div class="text-sm" style="color:var(--muted)">No previous weight entries yet.</div>`;
+  document.body.insertAdjacentHTML("beforeend",`<div class="modal" onclick="if(event.target===this)this.remove()"><div class="sheet"><div class="flex justify-between items-center mb-3"><div class="section-title">Exercise History</div><button class="secondary" onclick="this.closest('.modal').remove()">Close</button></div>${body}</div></div>`);
+}
+
+function renderAdvanced(){
+  const old=document.getElementById("advancedShell");
+  if(old)old.remove();
+  const app=document.getElementById("app");
+  if(!app)return;
+  const stats=calculateStats(), wi=weekInfo(state.week), workout=WORKOUTS.find(w=>w.key===state.workoutKey);
+  const data=ensureProgressShape(state.week,workout);
+  const done=workout.exercises.reduce((s,e)=>s+data[e.code].checks.filter(Boolean).length,0);
+  const total=workout.exercises.reduce((s,e)=>s+e.sets[wi.phaseKey],0);
+  const pct=total?Math.round(done/total*100):0;
+  const key=`${state.week}:${state.workoutKey}`;
+
+  const nav=`
+  <nav class="fixed bottom-0 left-0 right-0 z-50 px-3 pb-3 pt-2" style="background:rgba(22,31,53,.96);border-top:1px solid var(--line);backdrop-filter:blur(10px);">
+    <div class="max-w-md mx-auto grid grid-cols-5 gap-1">
+    ${[
+      ["home","⌂","Home"],["program","▦","Program"],["workout","◆","Workout"],["history","↺","History"],["guide","i","Guide"]
+    ].map(([k,i,l])=>`<button onclick="switchTab('${k}')" class="tap rounded-lg py-2 ${advState.tab===k?"":"opacity-60"}" style="${advState.tab===k?"background:var(--navy2);color:var(--amber)":""}"><div>${i}</div><div class="text-[9px] font-bold">${l}</div></button>`).join("")}
+    </div>
+  </nav>`;
+
+  let content="";
+  if(advState.tab==="home"){
+    content=`
+    <div class="px-4 pt-5 pb-24">
+      <div class="flex justify-between items-start"><div><div class="disp text-xs" style="color:var(--amber)">HYPERTROPHY LOG</div><div class="disp text-4xl">BUILD. TRACK. GROW.</div><p class="text-xs mt-2" style="color:var(--muted)">A structured 12-week hypertrophy system built around progressive overload, controlled tempo and consistent effort.</p></div><div class="streak">${stats.streak}<div class="mini-label">day streak</div></div></div>
+      <div class="metric-grid mt-4">
+        <div class="metric-card"><div class="mini-label">Current week</div><div class="metric-value">W${String(state.week).padStart(2,"0")}</div><div class="text-xs mt-1">${wi.phaseName}</div></div>
+        <div class="metric-card"><div class="mini-label">Today's progress</div><div class="metric-value">${pct}%</div><div class="progress-track mt-2"><div class="progress-fill" style="width:${pct}%"></div></div></div>
+        <div class="metric-card"><div class="mini-label">Sessions logged</div><div class="metric-value">${stats.sessions}</div><div class="text-xs">completed sessions</div></div>
+        <div class="metric-card"><div class="mini-label">Sets logged</div><div class="metric-value">${stats.sets}</div><div class="text-xs">total sets</div></div>
+      </div>
+      <div class="rounded-xl p-4 mt-4" style="background:linear-gradient(135deg,var(--navy2),#243252);border:1px solid var(--line)">
+        <div class="mini-label">Next session</div><div class="section-title mt-1">${workout.full} · ${workout.name}</div><div class="text-xs mt-1" style="color:var(--muted)">${workout.focus}</div>
+        <button class="primary mt-3 w-full" onclick="switchTab('workout')">Start / Continue Workout →</button>
+      </div>
+      <div class="section-title mt-5">Bodyweight</div>
+      <div class="flex gap-2 mt-2"><input class="field" type="number" step=".1" placeholder="Current bodyweight (lb)" value="${esc(advState.bodyweight)}" onchange="logBodyweight(this.value)"></div>
+      <div class="section-title mt-5">Coaching Notes</div>
+      <div class="rounded-xl p-4 mt-2" style="background:var(--navy2);border:1px solid var(--line)"><div class="text-sm">Consistency beats perfect workouts. Keep most sets controlled, log the weight, and progress only when form and target reps are earned.</div></div>
+    </div>`;
+  } else if(advState.tab==="program"){
+    content=`<div class="px-4 pt-5 pb-24"><div class="disp text-4xl">12-WEEK PROGRAM</div><p class="text-xs mt-1" style="color:var(--muted)">A progressive build from technique to peak effort, followed by a recovery week.</p>
+    <div class="space-y-2 mt-4">${Array.from({length:12},(_,i)=>i+1).map(w=>{const x=weekInfo(w);return `<button onclick="setWeekDirect(${w});switchTab('workout')" class="w-full text-left rounded-xl p-3" style="background:${w===state.week?"#243252":"var(--navy2)"};border:1px solid ${w===state.week?"var(--amber)":"var(--line)"}"><div class="flex justify-between"><b>Week ${w}</b><span class="chip">${x.phaseName}</span></div><div class="text-xs mt-1" style="color:var(--muted)">${weekNoteText(w,x.phaseKey)}</div></button>`}).join("")}</div></div>`;
+  } else if(advState.tab==="workout"){
+    content=`<div class="px-4 pt-5 pb-24"><div class="flex justify-between items-end"><div><div class="mini-label">${workout.full}</div><div class="disp text-4xl">${workout.name}</div></div><span class="chip">${done}/${total} sets</span></div><div class="progress-track mt-3"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="flex gap-2 mt-4 overflow-x-auto pb-1">${WORKOUTS.map(w=>`<button class="secondary whitespace-nowrap ${w.key===state.workoutKey?"!border-[var(--amber)]":""}" onclick="setWorkout('${w.key}');switchTab('workout')">${w.day} · ${w.name}</button>`).join("")}</div>
+    <div class="space-y-3 mt-4">${workout.exercises.map(e=>{const n=e.sets[wi.phaseKey],p=data[e.code],r=repLabel(e.range,wi.phaseKey,wi.idx),rec=getExerciseRecommendation(e,data,wi);return `<div class="rounded-xl p-3" style="background:var(--navy2);border:1px solid ${p.checks.every(Boolean)?"var(--green)":"var(--line)"}"><div class="flex justify-between"><div><div><span style="color:var(--amber);font-weight:800">${e.code}</span> <b>${esc(e.name)}</b></div><div class="text-xs mt-1" style="color:var(--muted)">${n} × ${r} · tempo ${e.tempo} · RIR ${e.rir[wi.phaseKey]}</div></div><button onclick="showExerciseHistory('${e.code}')" class="chip">History</button></div>
+    <div class="flex items-center gap-2 mt-3"><input class="field" style="max-width:80px;text-align:center" type="number" step=".5" placeholder="lb" value="${esc(p.weight)}" oninput="setWeight('${e.code}',this.value)">${Array.from({length:n},(_,i)=>`<button onclick="toggleSet('${e.code}',${i},${e.rest})" class="tap flex-1 py-2 rounded-lg" style="background:var(--navy);border:1px solid var(--line);color:${p.checks[i]?"var(--green)":"var(--muted)"}">${p.checks[i]?"✓":"○"}<div class="text-[9px]">Set ${i+1}</div></button>`).join("")}</div><div class="text-[10px] mt-2" style="color:var(--muted)">${rec}</div><button class="text-xs mt-2" style="color:var(--amber)" onclick="toggleCue('${e.code}')">Technique cues ▾</button>${state.openCue===e.code?`<div class="mt-2 text-xs space-y-1">${e.cues.map(c=>`<div>• ${esc(c)}</div>`).join("")}</div>`:""}</div>`}).join("")}</div>
+    <div class="rounded-xl p-4 mt-4" style="background:var(--navy2);border:1px solid var(--line)"><div class="mini-label">Session RPE</div><div class="flex gap-1 mt-2">${[6,7,8,9,10].map(v=>`<button class="secondary flex-1 ${String(advState.sessionRPE[key])===String(v)?"!border-[var(--amber)]":""}" onclick="setRPE(${v});renderAdvanced()">${v}</button>`).join("")}</div><textarea class="field mt-3" rows="3" placeholder="Workout notes: energy, form, pain-free/limitations, PRs..." onchange="setSessionNote(this.value)">${esc(advState.notes[key]||"")}</textarea><button class="primary mt-3 w-full" onclick="markComplete();recordCompletedSession();switchTab('history')">Finish & Log Session</button></div></div>`;
+  } else if(advState.tab==="history"){
+    content=`<div class="px-4 pt-5 pb-24"><div class="disp text-4xl">HISTORY & PRs</div><div class="metric-grid mt-4"><div class="metric-card"><div class="mini-label">Sessions</div><div class="metric-value">${stats.sessions}</div></div><div class="metric-card"><div class="mini-label">Sets</div><div class="metric-value">${stats.sets}</div></div></div>
+    <div class="section-title mt-5">Body Measurements</div><div class="rounded-xl p-3 mt-2" style="background:var(--navy2);border:1px solid var(--line)"><div class="grid grid-cols-2 gap-2"><input id="mDate" class="field" type="date" value="${new Date().toISOString().slice(0,10)}"><input id="mWeight" class="field" type="number" step=".1" placeholder="Weight lb"><input id="mWaist" class="field" type="number" step=".1" placeholder="Waist in"></div><button class="primary mt-2 w-full" onclick="addMeasurement()">Add measurement</button>${advState.measurements.slice(0,8).map((m,i)=>`<div class="flex justify-between text-xs py-2 border-b" style="border-color:var(--line)"><span>${esc(m.date)}</span><span>${m.weight?esc(m.weight)+" lb":"—"} ${m.waist?"· "+esc(m.waist)+" in waist":""}</span><button onclick="removeMeasurement(${i})">×</button></div>`).join("")}</div>
+    <div class="section-title mt-5">Completed Sessions</div><div class="space-y-2 mt-2">${advState.history.length?advState.history.slice(0,15).map(x=>`<div class="rounded-xl p-3" style="background:var(--navy2);border:1px solid var(--line)"><div class="flex justify-between"><b>W${x.week} · ${esc(x.workout)}</b><span class="pr-badge">${x.done}/${x.sets} sets</span></div><div class="text-xs mt-1" style="color:var(--muted)">${new Date(x.date).toLocaleDateString()} ${x.rpe?"· RPE "+x.rpe:""}</div></div>`).join(""):`<div class="text-sm" style="color:var(--muted)">Finish a workout and it will appear here.</div>`}</div></div>`;
+  } else {
+    content=`<div class="px-4 pt-5 pb-24"><div class="disp text-4xl">GUIDE</div><div class="space-y-3 mt-4">${[
+      ["Progressive overload","When you hit the top of the prescribed rep range on every set with clean form, increase load next time. Small jumps are ideal."],
+      ["RIR","Reps in reserve. RIR 2 means you could have done about two more good reps. Peak weeks intentionally push closer to failure."],
+      ["Tempo","The first number is the lowering phase. The middle number is the pause. The final number is the lifting phase."],
+      ["RPE","A 6–10 effort rating after the workout. Use it to spot patterns in recovery and performance."],
+      ["Measurements","Bodyweight and waist trends are more useful than any single reading. Measure under similar conditions."],
+      ["PR tracking","Use the History button on an exercise to review previous logged weights. A PR is meaningful when it comes with comparable form and reps."]
+    ].map(x=>`<div class="rounded-xl p-4" style="background:var(--navy2);border:1px solid var(--line)"><b>${x[0]}</b><div class="text-xs mt-1" style="color:var(--muted)">${x[1]}</div></div>`).join("")}</div>
+    <button class="secondary w-full mt-4" onclick="exportAdvanced()">Export all training data</button></div>`;
+  }
+  const shell=document.createElement("div");shell.id="advancedShell";shell.innerHTML=content+nav;app.appendChild(shell);
+}
+function exportAdvanced(){
+  const payload={program:"Hypertrophy Log",exported:new Date().toISOString(),advState,week:state.week,workout:state.workoutKey};
+  for(let w=1;w<=12;w++)for(const wk of WORKOUTS)payload[`progress_${w}_${wk.key}`]=getProgress(w,wk.key);
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download="hypertrophy-log-backup.json";a.click();URL.revokeObjectURL(a.href);
+}
+
+/* Preserve the original renderer's data behavior, then replace visible UI with the advanced shell. */
+const originalRender = render;
+render = function(){ originalRender(); renderAdvanced(); };
+setTimeout(()=>{renderAdvanced()},0);
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
