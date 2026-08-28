@@ -1,15 +1,11 @@
 {
-  "name": "Hypertrophy Log — 12 Week Program",
-  "short_name": "Hypertrophy Log",
-  "description": "A personal 12-week strength and hypertrophy training companion.",
-  "start_url": "./",
-  "scope": "./",
-  "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#161F35",
-  "theme_color": "#161F35",
-  "icons": [
-    {"src":"icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
-    {"src":"icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
-  ]
+  "name":"Hypertrophy Log Pro",
+  "short_name":"Hypertrophy Log",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "orientation":"portrait",
+  "background_color":"#111827",
+  "theme_color":"#111827",
+  "description":"Personal 12-week hypertrophy training log and progression tracker."
 }
