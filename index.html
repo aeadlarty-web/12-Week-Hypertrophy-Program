@@ -604,20 +604,71 @@ function renderAdvanced(){
       ["Measurements","Bodyweight and waist trends are more useful than any single reading. Measure under similar conditions."],
       ["PR tracking","Use the History button on an exercise to review previous logged weights. A PR is meaningful when it comes with comparable form and reps."]
     ].map(x=>`<div class="rounded-xl p-4" style="background:var(--navy2);border:1px solid var(--line)"><b>${x[0]}</b><div class="text-xs mt-1" style="color:var(--muted)">${x[1]}</div></div>`).join("")}</div>
-    <button class="secondary w-full mt-4" onclick="exportAdvanced()">Export all training data</button></div>`;
+    <div class="grid grid-cols-2 gap-2 mt-4">
+      <button class="secondary w-full" onclick="exportAdvanced()">Backup all data</button>
+      <label class="secondary w-full text-center cursor-pointer">Restore backup<input type="file" accept=".json,application/json" class="hidden" onchange="importAllData(this)"></label>
+    </div>
+    <div class="text-[10px] mt-2" style="color:var(--muted)">Backups include your logged sets, weights, completion history, body measurements, notes, RPE and app settings.</div></div>`;
   }
   const shell=document.createElement("div");shell.id="advancedShell";shell.innerHTML=content+nav;app.appendChild(shell);
 }
 function exportAdvanced(){
-  const payload={program:"Hypertrophy Log",exported:new Date().toISOString(),advState,week:state.week,workout:state.workoutKey};
-  for(let w=1;w<=12;w++)for(const wk of WORKOUTS)payload[`progress_${w}_${wk.key}`]=getProgress(w,wk.key);
+  const storage={};
+  Object.keys(localStorage).filter(k=>k.startsWith("hl:")).forEach(k=>{
+    try{ storage[k]=JSON.parse(localStorage.getItem(k)); }catch(e){ storage[k]=localStorage.getItem(k); }
+  });
+  const payload={
+    program:"Hypertrophy Log",
+    version:2,
+    exported:new Date().toISOString(),
+    storage
+  };
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);a.download="hypertrophy-log-backup.json";a.click();URL.revokeObjectURL(a.href);
+  a.href=URL.createObjectURL(blob);
+  a.download="hypertrophy-log-backup.json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function importAllData(input){
+  const file=input.files&&input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const payload=JSON.parse(reader.result);
+      if(!payload||!payload.storage||typeof payload.storage!=="object")throw new Error("Invalid backup");
+      if(!confirm("Restore this backup? This will replace the current Hypertrophy Log data on this phone."))return;
+      Object.keys(payload.storage).filter(k=>k.startsWith("hl:")).forEach(k=>localStorage.setItem(k,JSON.stringify(payload.storage[k])));
+      state.week=LS.get("hl:week",1);
+      state.workoutKey=LS.get("hl:workout","upperA");
+      advState={
+        tab:ADV.get("hl:tab","home"),
+        bodyweight:ADV.get("hl:bodyweight",""),
+        measurements:ADV.get("hl:measurements",[]),
+        notes:ADV.get("hl:notes",{}),
+        sessionRPE:ADV.get("hl:rpe",{}),
+        history:ADV.get("hl:history",[]),
+        prs:ADV.get("hl:prs",{})
+      };
+      showToast("Backup restored");
+      render();
+    }catch(e){ alert("That backup file could not be restored."); }
+  };
+  reader.readAsText(file);
+  input.value="";
 }
 
-/* Preserve the original renderer's data behavior, then replace visible UI with the advanced shell. */
-const originalRender = render;
-render = function(){ originalRender(); renderAdvanced(); };
+
+/* The advanced shell is the single visible app UI. The original renderer remains
+   available internally for data compatibility, but is never rendered alongside it. */
+render = function(){
+  const app=document.getElementById("app");
+  if(app) app.innerHTML="";
+  renderAdvanced();
+};
+render();
 setTimeout(()=>{renderAdvanced()},0);
 </script>
 
