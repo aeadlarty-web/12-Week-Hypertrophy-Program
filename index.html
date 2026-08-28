@@ -203,7 +203,25 @@ function markComplete(){
  render();
 }
 function startTimer(sec){clearTimeout(timerHandle);state.timer={running:true,seconds:sec,total:sec};tickTimer();render()}
-function stopTimer(){clearTimeout(timerHandle);state.timer={running:false,seconds:0,total:0};render()}
+function pauseTimer(){
+ clearTimeout(timerHandle);
+ if(state.timer.running){state.timer.running=false;render()}
+}
+function resumeTimer(){
+ if(state.timer.seconds>0 && !state.timer.running){state.timer.running=true;tickTimer();render()}
+}
+function adjustTimer(delta){
+ state.timer.seconds=Math.max(0,state.timer.seconds+delta);
+ state.timer.total=Math.max(state.timer.total,state.timer.seconds);
+ if(state.timer.seconds===0)stopTimer(); else render();
+}
+function skipTimer(){stopTimer()}
+function timerBarAdvanced(){
+ const t=state.timer;
+ if(!t.running && !t.seconds) return `<div class="rounded-xl p-3 mt-4" style="background:var(--navy2);border:1px solid var(--line)"><div class="flex items-center justify-between"><div><div class="mini-label">Rest timer</div><div class="text-xs mt-1" style="color:var(--muted)">Tap a duration to start</div></div><div class="flex gap-1">${[45,60,75,90,120].map(x=>`<button class="secondary" onclick="startTimer(${x})">${x}s</button>`).join('')}</div></div></div>`;
+ const pct=t.total?Math.round(t.seconds/t.total*100):0;
+ return `<div class="rounded-xl p-3 mt-4" style="background:var(--navy2);border:1px solid var(--amber)"><div class="flex items-center justify-between gap-3"><div><div class="mini-label" style="color:var(--amber)">REST TIMER</div><div class="disp text-3xl">${t.seconds}s</div></div><div class="flex gap-1 flex-wrap justify-end"><button class="secondary" onclick="adjustTimer(-15)">−15</button><button class="secondary" onclick="adjustTimer(30)">+30</button><button class="secondary" onclick="${t.running?'pauseTimer()':'resumeTimer()'}">${t.running?'Pause':'Resume'}</button><button class="secondary" onclick="skipTimer()">Skip</button></div></div><div class="progress-track mt-3"><div class="progress-fill" style="width:${pct}%"></div></div></div>`;
+}
 function tickTimer(){
  clearTimeout(timerHandle);
  timerHandle=setTimeout(()=>{
@@ -288,7 +306,7 @@ function timerBarHTML(){
  }
  return `<div id="timerBar" class="fixed left-0 right-0 bottom-[64px] z-30 px-3" style="max-width:520px;margin:0 auto"><div class="rounded-xl p-2 glass" style="border:1px solid var(--line)"><div class="flex gap-2">${[30,45,60,75,90].map(s=>`<button class="tap flex-1 py-2 rounded-lg text-[10px] font-bold" style="background:var(--navy);border:1px solid var(--line)" onclick="startTimer(${s})">${s}s</button>`).join("")}</div></div></div>`;
 }
-function renderTimerOnly(){const x=document.getElementById("timerBar");if(x)x.outerHTML=timerBarHTML()}
+function renderTimerOnly(){const x=document.getElementById("timerBar");if(x)x.outerHTML=timerBarHTML(); const y=document.getElementById("advancedTimer"); if(y)y.outerHTML=timerBarAdvanced().replace(/^<div/,'<div id="advancedTimer"')}
 
 /* =========================
    PAGES
@@ -590,6 +608,7 @@ function renderAdvanced(){
     <div class="flex gap-2 mt-4 overflow-x-auto pb-1">${WORKOUTS.map(w=>`<button class="secondary whitespace-nowrap ${w.key===state.workoutKey?"!border-[var(--amber)]":""}" onclick="setWorkout('${w.key}');switchTab('workout')">${w.day} · ${w.name}</button>`).join("")}</div>
     <div class="space-y-3 mt-4">${workout.exercises.map(e=>{const n=e.sets[wi.phaseKey],p=data[e.code],r=repLabel(e.range,wi.phaseKey,wi.idx),rec=getExerciseRecommendation(e,data,wi);return `<div class="rounded-xl p-3" style="background:var(--navy2);border:1px solid ${p.checks.every(Boolean)?"var(--green)":"var(--line)"}"><div class="flex justify-between"><div><div><span style="color:var(--amber);font-weight:800">${e.code}</span> <b>${esc(e.name)}</b></div><div class="text-xs mt-1" style="color:var(--muted)">${n} × ${r} · tempo ${e.tempo} · RIR ${e.rir[wi.phaseKey]}</div></div><button onclick="showExerciseHistory('${e.code}')" class="chip">History</button></div>
     <div class="flex items-center gap-2 mt-3"><input class="field" style="max-width:80px;text-align:center" type="number" step=".5" placeholder="lb" value="${esc(p.weight)}" oninput="setWeight('${e.code}',this.value)">${Array.from({length:n},(_,i)=>`<button onclick="toggleSet('${e.code}',${i},${e.rest})" class="tap flex-1 py-2 rounded-lg" style="background:var(--navy);border:1px solid var(--line);color:${p.checks[i]?"var(--green)":"var(--muted)"}">${p.checks[i]?"✓":"○"}<div class="text-[9px]">Set ${i+1}</div></button>`).join("")}</div><div class="text-[10px] mt-2" style="color:var(--muted)">${rec}</div><button class="text-xs mt-2" style="color:var(--amber)" onclick="toggleCue('${e.code}')">Technique cues ▾</button>${state.openCue===e.code?`<div class="mt-2 text-xs space-y-1">${e.cues.map(c=>`<div>• ${esc(c)}</div>`).join("")}</div>`:""}</div>`}).join("")}</div>
+    <div id="advancedTimer">${timerBarAdvanced()}</div>
     <div class="rounded-xl p-4 mt-4" style="background:var(--navy2);border:1px solid var(--line)"><div class="mini-label">Session RPE</div><div class="flex gap-1 mt-2">${[6,7,8,9,10].map(v=>`<button class="secondary flex-1 ${String(advState.sessionRPE[key])===String(v)?"!border-[var(--amber)]":""}" onclick="setRPE(${v});renderAdvanced()">${v}</button>`).join("")}</div><textarea class="field mt-3" rows="3" placeholder="Workout notes: energy, form, pain-free/limitations, PRs..." onchange="setSessionNote(this.value)">${esc(advState.notes[key]||"")}</textarea><button class="primary mt-3 w-full" onclick="markComplete();recordCompletedSession();switchTab('history')">Finish & Log Session</button></div></div>`;
   } else if(advState.tab==="history"){
     content=`<div class="px-4 pt-5 pb-24"><div class="disp text-4xl">HISTORY & PRs</div><div class="metric-grid mt-4"><div class="metric-card"><div class="mini-label">Sessions</div><div class="metric-value">${stats.sessions}</div></div><div class="metric-card"><div class="mini-label">Sets</div><div class="metric-value">${stats.sets}</div></div></div>
@@ -604,11 +623,7 @@ function renderAdvanced(){
       ["Measurements","Bodyweight and waist trends are more useful than any single reading. Measure under similar conditions."],
       ["PR tracking","Use the History button on an exercise to review previous logged weights. A PR is meaningful when it comes with comparable form and reps."]
     ].map(x=>`<div class="rounded-xl p-4" style="background:var(--navy2);border:1px solid var(--line)"><b>${x[0]}</b><div class="text-xs mt-1" style="color:var(--muted)">${x[1]}</div></div>`).join("")}</div>
-    <div class="grid grid-cols-2 gap-2 mt-4">
-      <button class="secondary w-full" onclick="exportAdvanced()">Backup all data</button>
-      <label class="secondary w-full text-center cursor-pointer">Restore backup<input type="file" accept=".json,application/json" class="hidden" onchange="importAllData(this)"></label>
-    </div>
-    <div class="text-[10px] mt-2" style="color:var(--muted)">Backups include your logged sets, weights, completion history, body measurements, notes, RPE and app settings.</div></div>`;
+    <div class="grid grid-cols-2 gap-2 mt-4"><button class="secondary" onclick="exportAdvanced()">Backup / Export</button><label class="secondary text-center">Restore / Import<input type="file" accept=".json,application/json" class="hidden" onchange="importAllData(this)"></label></div><div class="text-[10px] mt-2" style="color:var(--muted)">Restore replaces the current app data on this phone. Export a fresh backup before restoring.</div></div>`;
   }
   const shell=document.createElement("div");shell.id="advancedShell";shell.innerHTML=content+nav;app.appendChild(shell);
 }
