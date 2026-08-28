@@ -1,2 +1,2 @@
 # 12-Week-Hypertrophy-Program
-Workout Log V1
+Workout Log V3
