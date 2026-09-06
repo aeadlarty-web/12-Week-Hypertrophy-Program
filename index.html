@@ -68,45 +68,102 @@ function repLabel(range,phase,idx){
  const r=REPS[range], unit=r.unit||"", leg=r.perLeg?"/leg":"";
  return phase==="d"?`${r.d}${unit}${leg}`:`${r[phase][idx]}${unit}${leg}`;
 }
-function ex(code,name,tempo,range,sets,rir,rest,cues){
- return {code,name,tempo,range,sets,rir,rest,cues};
+function ex(code,name,tempo,range,sets,rir,rest,cues,variants,anchor){
+ return {code,name,tempo,range,sets,rir,rest,cues,variants:variants||null,anchor:!!anchor};
+}
+function blockOf(week){ return week<=4?1:week<=8?2:3; }
+function resolvedExercises(workout,week){
+ const b=blockOf(week);
+ return workout.exercises.map(e=>{
+  if(e.variants && e.variants[b]) return {...e,name:e.variants[b].name,cues:e.variants[b].cues};
+  return e;
+ });
 }
 const WORKOUTS=[
  {key:"upperA",day:"MON",full:"Monday",name:"Upper A",focus:"Horizontal Push / Pull",color:"amber",exercises:[
-  ex("1","DB Bench Press","3-1-1","6-10",{f:4,o:5,p:5,d:2},{f:"2",o:"1",p:"1 (last set 0-1)",d:"3-4"},45,["Shoulder blades pinned back and down into the bench","Lower 3 sec to a stretch at chest level, brief pause","Drive up and squeeze pecs together at the top"]),
-  ex("2A","Incline DB Press","3-1-1","8-12",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1",p:"1",d:"3-4"},45,["Bench at 30-45°","Press slightly inward at the top and control the descent"]),
-  ex("2B","One-Arm DB Row","2-1-2","8-12",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1",p:"1",d:"3-4"},45,["Flat back and brace the core","Drive the elbow toward the hip and squeeze the lat"]),
+  ex("1","DB Bench Press","3-1-1","6-10",{f:4,o:5,p:5,d:2},{f:"2",o:"1",p:"1 (last set 0-1)",d:"3-4"},45,["Shoulder blades pinned back and down into the bench","Lower 3 sec to a stretch at chest level, brief pause","Drive up and squeeze pecs together at the top"],null,true),
+  ex("2A","Incline DB Press","3-1-1","8-12",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1",p:"1",d:"3-4"},45,["Bench at 30-45°","Press slightly inward at the top and control the descent"],
+    {2:{name:"DB Chest Fly",cues:["Slight bend in elbows held constant throughout the rep","Arc the dumbbells out and down to a stretch, then squeeze back up and together"]},
+     3:{name:"Incline DB Fly",cues:["Bench at 30-45°, same constant elbow bend as a flat fly","Feel the stretch across the upper chest at the bottom — don't drop elbows below shoulder level"]}}),
+  ex("2B","One-Arm DB Row","2-1-2","8-12",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1",p:"1",d:"3-4"},45,["Flat back and brace the core","Drive the elbow toward the hip and squeeze the lat"],
+    {2:{name:"Renegade Row",cues:["Push-up position with feet set wide for stability","Row one dumbbell to the hip while bracing hard to resist rotating"]},
+     3:{name:"Kroc Row",cues:["Heavier one-arm row — a little body English is fine here","Focus on pulling the elbow high and back, controlled on the way down"]}}),
   ex("3A","Pull-ups","2-0-2","6-10",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1",p:"1",d:"3-4"},45,["Full hang with active shoulders","Add weight once 10 reps are consistently easy"]),
-  ex("3B","Lateral Raise","2-1-2","12-15",{f:3,o:3,p:4,d:2},{f:"1",o:"1",p:"1 (last set 0)",d:"3-4"},45,["Slight elbow bend and lead with the elbow","Use a lighter weight and control the motion"]),
-  ex("3C","Rear Delt Fly","2-1-2","12-15",{f:3,o:3,p:4,d:2},{f:"1",o:"1",p:"1 (last set 0)",d:"3-4"},45,["Hinge forward with soft knees","Raise out to the sides and squeeze the rear delts"]),
-  ex("4A","Hammer Curl","2-0-2","10-15",{f:2,o:2,p:3,d:1},{f:"1",o:"1",p:"1 (last set 0)",d:"3-4"},45,["Elbows pinned to your sides","Full stretch at bottom and squeeze at the top"]),
-  ex("4B","Skull Crusher","2-1-2","10-15",{f:2,o:2,p:3,d:1},{f:"0-1",o:"0-1",p:"0-1 (last set 0)",d:"3-4"},45,["Keep elbows stationary","Allow a full stretch behind the head without flaring"]),
-  ex("4C","Standing DB Curl","2-0-2","10-15",{f:2,o:2,p:3,d:1},{f:"1",o:"1",p:"1 (last set 0)",d:"3-4"},45,["Elbows stay at your sides","Rotate to a palm-up grip as you curl"])
+  ex("3B","Lateral Raise","2-1-2","12-15",{f:3,o:3,p:4,d:2},{f:"1-2 (last set 0-1)",o:"1-2 (last set 0-1)",p:"1 (last set 0)",d:"3-4"},45,["Slight elbow bend and lead with the elbow","Use a lighter weight and control the motion"]),
+  ex("3C","Chest-Supported Rear Delt Fly","2-1-2","12-15",{f:3,o:3,p:4,d:2},{f:"1-2 (last set 0-1)",o:"1-2 (last set 0-1)",p:"1 (last set 0)",d:"3-4"},45,["Lie face-down on an incline bench set to 30-45°","Raise the dumbbells out to the sides, squeezing the rear delts — no swing possible in this position"]),
+  ex("4A","Hammer Curl","2-0-2","10-15",{f:2,o:2,p:3,d:1},{f:"1-2 (last set 0-1)",o:"1-2 (last set 0-1)",p:"1 (last set 0)",d:"3-4"},45,["Elbows pinned to your sides","Full stretch at bottom and squeeze at the top"],
+    {2:{name:"Zottman Curl",cues:["Curl up with palms facing up, rotate to palms-down at the top","Lower slowly palms-down for extra forearm and brachialis work"]},
+     3:{name:"Cross-Body Hammer Curl",cues:["Curl the dumbbell up and across toward the opposite shoulder","Keep the elbow pinned; alternate arms or do one side at a time"]}}),
+  ex("4B","Skull Crusher","2-1-2","10-15",{f:2,o:2,p:3,d:1},{f:"1-2 (last set 0-1)",o:"1-2 (last set 0-1)",p:"0-1 (last set 0)",d:"3-4"},45,["Keep elbows stationary","Allow a full stretch behind the head without flaring"],
+    {2:{name:"Tate Press",cues:["Lying down, elbows flared out to the sides","Lower the dumbbells to touch near your chest, then press back up through the elbows"]},
+     3:{name:"Diamond Push-ups",cues:["Hands together under your chest, thumbs and index fingers touching","Elbows stay close to your body throughout the rep"]}}),
+  ex("4C","Standing DB Curl","2-0-2","10-15",{f:2,o:2,p:3,d:1},{f:"1-2 (last set 0-1)",o:"1-2 (last set 0-1)",p:"1 (last set 0)",d:"3-4"},45,["Elbows stay at your sides","Rotate to a palm-up grip as you curl"],
+    {2:{name:"Reverse Curl",cues:["Overhand (palms-down) grip throughout the movement","Go lighter than a regular curl — this hits the forearms and brachialis hard"]},
+     3:{name:"Spider Curl",cues:["Chest against an incline bench, arms hanging straight down","No swinging possible in this position — pure biceps isolation"]}})
  ]},
  {key:"lowerA",day:"TUE",full:"Tuesday",name:"Lower A",focus:"Quad-Dominant & Posterior Chain",exercises:[
-  ex("1","Goblet / Front Squat","3-1-1","8-12",{f:4,o:4,p:4,d:2},{f:"2",o:"1",p:"1 (last set 0-1)",d:"3-4"},45,["Hold the dumbbell at chest height","Sit down and back, knees tracking over toes"]),
-  ex("2","Romanian Deadlift","3-1-1","8-12",{f:4,o:5,p:5,d:2},{f:"2",o:"1",p:"1 (last set 0-1)",d:"3-4"},45,["Soft knees and hinge at the hips","Keep dumbbells close and chase a hamstring stretch"]),
-  ex("3","Bulgarian Split Squat","2-1-1","fixed10",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1",p:"1",d:"3-4"},45,["Most weight stays on the front leg","Drop straight down with the knee tracking over the foot"]),
-  ex("4A","Standing Calf Raise","2-1-2","15-20",{f:4,o:4,p:4,d:2},{f:"1",o:"1",p:"1",d:"3-4"},45,["Get a full stretch at the bottom","Pause at the top of every rep"]),
-  ex("4B","Hanging Leg Raise","controlled","10-15",{f:3,o:3,p:3,d:2},{f:"1",o:"1",p:"1",d:"3-4"},45,["Curl the pelvis instead of swinging","Slow and controlled beats fast"])
+  ex("1","Goblet / Front Squat","3-1-1","8-12",{f:4,o:4,p:4,d:2},{f:"2",o:"1",p:"1 (last set 0-1)",d:"3-4"},45,["Hold the dumbbell at chest height","Sit down and back, knees tracking over toes"],null,true),
+  ex("2","Romanian Deadlift","3-1-1","8-12",{f:4,o:5,p:5,d:2},{f:"2",o:"1",p:"1 (last set 0-1)",d:"3-4"},45,["Soft knees and hinge at the hips","Keep dumbbells close and chase a hamstring stretch"],null,true),
+  ex("3","Bulgarian Split Squat","2-1-1","fixed10",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1",p:"1",d:"3-4"},45,["Most weight stays on the front leg","Drop straight down with the knee tracking over the foot"],
+    {2:{name:"Reverse Lunge",cues:["Step backward instead of forward — easier on the knees","Drive through the front heel to return to standing"]},
+     3:{name:"Curtsy Lunge",cues:["Step one leg diagonally behind the other, like a curtsy","Keep the torso upright — feel it through the glute of the front leg"]}}),
+  ex("4A","Standing Calf Raise","2-1-2","15-20",{f:4,o:4,p:4,d:2},{f:"1-2 (last set 0-1)",o:"1-2 (last set 0-1)",p:"1 (last set 0)",d:"3-4"},45,["Get a full stretch at the bottom","Pause at the top of every rep"],
+    {2:{name:"Seated DB Calf Raise",cues:["Dumbbells rest on your knees, heels raise off the ground","Full stretch at the bottom, hold the squeeze at the top"]},
+     3:{name:"Single-Leg Calf Raise",cues:["One foot on the ground — use a wall for balance if needed","Full range: deep stretch at bottom, all the way up onto the toes"]}}),
+  ex("4B","Hanging Leg Raise","controlled","10-15",{f:3,o:3,p:3,d:2},{f:"1-2 (last set 0-1)",o:"1-2 (last set 0-1)",p:"1 (last set 0)",d:"3-4"},45,["Curl the pelvis instead of swinging","Slow and controlled beats fast"],
+    {2:{name:"Weighted Sit-up",cues:["Hold a dumbbell at your chest throughout","Curl up vertebra by vertebra — don't just hinge at the hips"]},
+     3:{name:"Russian Twist",cues:["Feet up or down — your choice for difficulty","Rotate from the torso and tap the dumbbell down on each side"]}})
  ]},
- {key:"upperB",day:"THU",full:"Thursday",name:"Upper B",focus:"Vertical Push / Pull",exercises:[
-  ex("1","Standing DB Overhead Press","2-1-1","6-10",{f:4,o:5,p:5,d:2},{f:"2",o:"1",p:"1 (last set 0-1)",d:"3-4"},45,["Brace the core and keep ribs down","Full lockout and controlled descent to ear height"]),
-  ex("2A","Dips","2-1-1","8-12",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1",p:"1",d:"3-4"},45,["Slight forward lean biases chest","Lower until shoulders are approximately level with elbows"]),
-  ex("2B","Chest-Supported DB Row","2-1-2","10-12",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1",p:"1",d:"3-4"},45,["Keep chest pinned to the bench","Row toward the lower ribs and squeeze"]),
+ {key:"upperB",day:"WED",full:"Wednesday",name:"Upper B",focus:"Vertical Push / Pull",exercises:[
+  ex("1","Standing DB Overhead Press","2-1-1","6-10",{f:4,o:5,p:5,d:2},{f:"2",o:"1",p:"1 (last set 0-1)",d:"3-4"},45,["Brace the core and keep ribs down","Full lockout and controlled descent to ear height"],null,true),
+  ex("2A","Dips","2-1-1","8-12",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1",p:"1",d:"3-4"},45,["Slight forward lean biases chest","Lower until shoulders are approximately level with elbows"],
+    {2:{name:"Close-Grip Push-ups",cues:["Hands just inside shoulder width","Elbows track close to your ribs, not flared out"]},
+     3:{name:"Svend Press",cues:["Squeeze a dumbbell (or plate) between both palms","Press straight out from the chest, keeping the squeeze on the whole time"]}}),
+  ex("2B","Chest-Supported DB Row","2-1-2","10-12",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1",p:"1",d:"3-4"},45,["Keep chest pinned to the bench","Row toward the lower ribs and squeeze"],
+    {2:{name:"Wide-Grip Bent-Over Row",cues:["Hinge at the hips, dumbbells wider than shoulder width","Row up toward the lower ribs with elbows flared slightly out"]}}),
   ex("3A","Chin-ups","2-0-2","6-10",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1",p:"1",d:"3-4"},45,["Underhand grip increases biceps involvement","Lead with the elbows and use full range"]),
-  ex("3B","Rear Delt Fly","2-1-2","12-15",{f:3,o:3,p:4,d:2},{f:"1",o:"1",p:"1 (last set 0)",d:"3-4"},45,["Hinge forward with soft knees","Raise out to the sides and squeeze"]),
-  ex("3C","Lateral Raise","2-1-2","12-15",{f:3,o:3,p:4,d:2},{f:"1",o:"1",p:"1 (last set 0)",d:"3-4"},45,["Slight elbow bend","Keep the movement strict and controlled"]),
-  ex("4A","Incline DB Curl","2-1-2","10-15",{f:2,o:2,p:3,d:1},{f:"1",o:"1",p:"1 (last set 0)",d:"3-4"},45,["Keep elbows still","Let the arm hang behind you for a full stretch"]),
-  ex("4B","Overhead DB Triceps Ext.","2-1-2","10-15",{f:2,o:2,p:3,d:1},{f:"0-1",o:"0-1",p:"0-1 (last set 0)",d:"3-4"},45,["Point elbows forward","Use the long-head stretch behind the head"]),
-  ex("4C","Concentration Curl","2-1-2","10-15",{f:2,o:2,p:3,d:1},{f:"1",o:"1",p:"1 (last set 0)",d:"3-4"},45,["Brace the elbow against the inner thigh","Full stretch, squeeze, and no swinging"])
+  ex("3B","Chest-Supported Rear Delt Fly","2-1-2","12-15",{f:3,o:3,p:4,d:2},{f:"1-2 (last set 0-1)",o:"1-2 (last set 0-1)",p:"1 (last set 0)",d:"3-4"},45,["Lie face-down on an incline bench set to 30-45°","Raise the dumbbells out to the sides, squeezing the rear delts — no swing possible in this position"]),
+  ex("3C","Lateral Raise","2-1-2","12-15",{f:3,o:3,p:4,d:2},{f:"1-2 (last set 0-1)",o:"1-2 (last set 0-1)",p:"1 (last set 0)",d:"3-4"},45,["Slight elbow bend","Keep the movement strict and controlled"]),
+  ex("4A","Incline DB Curl","2-1-2","10-15",{f:2,o:2,p:3,d:1},{f:"1-2 (last set 0-1)",o:"1-2 (last set 0-1)",p:"1 (last set 0)",d:"3-4"},45,["Keep elbows still","Let the arm hang behind you for a full stretch"],
+    {2:{name:"Concentration Curl",cues:["Brace the elbow against the inner thigh","Full stretch, squeeze, and no swinging"]},
+     3:{name:"Drag Curl",cues:["Drag the dumbbells straight up along your torso, elbows drifting back","No forward swing — the bar path is vertical, not arced"]}}),
+  ex("4B","Overhead DB Triceps Ext.","2-1-2","10-15",{f:2,o:2,p:3,d:1},{f:"1-2 (last set 0-1)",o:"1-2 (last set 0-1)",p:"0-1 (last set 0)",d:"3-4"},45,["Point elbows forward","Use the long-head stretch behind the head"],
+    {2:{name:"Triceps Kickback",cues:["Hinge forward, upper arm parallel to the floor and still","Extend the forearm back until straight, squeeze, then control the return"]},
+     3:{name:"Skull Crusher",cues:["Keep elbows stationary","Allow a full stretch behind the head without flaring"]}}),
+  ex("4C","Concentration Curl","2-1-2","10-15",{f:2,o:2,p:3,d:1},{f:"1-2 (last set 0-1)",o:"1-2 (last set 0-1)",p:"1 (last set 0)",d:"3-4"},45,["Brace the elbow against the inner thigh","Full stretch, squeeze, and no swinging"],
+    {2:{name:"Zottman Curl",cues:["Curl up with palms facing up, rotate to palms-down at the top","Lower slowly palms-down for extra forearm and brachialis work"]},
+     3:{name:"Reverse Curl",cues:["Overhand (palms-down) grip throughout the movement","Go lighter than a regular curl — this hits the forearms and brachialis hard"]}})
  ]},
- {key:"lowerB",day:"FRI",full:"Friday",name:"Lower B",focus:"Posterior Chain & Unilateral",exercises:[
-  ex("1","DB Walking Lunge","2-1-1","fixed10",{f:3,o:3,p:3,d:2},{f:"2",o:"1",p:"1",d:"3-4"},45,["Use a stride long enough for a stable front leg","Drive through the front heel"]),
-  ex("2","Single-Leg Romanian Deadlift","3-1-1","fixed10",{f:3,o:3,p:3,d:2},{f:"2",o:"1",p:"1",d:"3-4"},45,["Hinge at the hip","Use a light load until balance is automatic"]),
-  ex("3A","DB Hip Thrust","2-1-2","10-15",{f:3,o:3,p:3,d:2},{f:"1",o:"1",p:"1",d:"3-4"},45,["Upper back rests on the bench","Drive through the heels and squeeze glutes at the top"]),
-  ex("3B","Standing Calf Raise","2-1-2","15-20",{f:3,o:3,p:3,d:2},{f:"1",o:"1",p:"1",d:"3-4"},45,["Full stretch at bottom","Pause at the top"]),
-  ex("4","Weighted Plank","hold","plank",{f:3,o:3,p:3,d:2},{f:"1",o:"1",p:"1",d:"3-4"},45,["Straight line from shoulders to ankles","Brace as if preparing for a poke"])
+ {key:"lowerB",day:"THU",full:"Thursday",name:"Lower B",focus:"Posterior Chain & Unilateral",exercises:[
+  ex("1","DB Walking Lunge","2-1-1","fixed10",{f:3,o:3,p:3,d:2},{f:"2",o:"1",p:"1",d:"3-4"},45,["Use a stride long enough for a stable front leg","Drive through the front heel"],
+    {2:{name:"Step-Up",cues:["Full foot on the bench, drive through the heel","Control the descent — don't just drop down"]},
+     3:{name:"Lateral Lunge",cues:["Step wide to one side and sit back into that hip","Push off that foot to return to standing, keep the other leg straight"]}}),
+  ex("2","Single-Leg Romanian Deadlift","3-1-1","fixed10",{f:3,o:3,p:3,d:2},{f:"2",o:"1",p:"1",d:"3-4"},45,["Hinge at the hip","Use a light load until balance is automatic"],null,true),
+  ex("3A","DB Hip Thrust","2-1-2","10-15",{f:3,o:3,p:3,d:2},{f:"1-2 (last set 0-1)",o:"1-2 (last set 0-1)",p:"1 (last set 0)",d:"3-4"},45,["Upper back rests on the bench","Drive through the heels and squeeze glutes at the top"],
+    {2:{name:"Single-Leg Hip Thrust",cues:["Upper back on a bench, one foot planted, other leg extended","Drive through the planted heel — keep hips level, don't rotate"]}}),
+  ex("3B","Standing Calf Raise","2-1-2","15-20",{f:3,o:3,p:3,d:2},{f:"1-2 (last set 0-1)",o:"1-2 (last set 0-1)",p:"1 (last set 0)",d:"3-4"},45,["Full stretch at bottom","Pause at the top"],
+    {2:{name:"Single-Leg Calf Raise",cues:["One foot on the ground — use a wall for balance if needed","Full range: deep stretch at bottom, all the way up onto the toes"]},
+     3:{name:"Seated DB Calf Raise",cues:["Dumbbells rest on your knees, heels raise off the ground","Full stretch at the bottom, hold the squeeze at the top"]}}),
+  ex("4","Weighted Plank","hold","plank",{f:3,o:3,p:3,d:2},{f:"1",o:"1",p:"1",d:"3-4"},45,["Straight line from shoulders to ankles","Brace as if preparing for a poke"],
+    {2:{name:"Side Plank",cues:["Stack your feet, prop up on one forearm","Keep hips lifted and in line — don't let them sag"]},
+     3:{name:"Hollow Body Hold",cues:["Lower back pressed into the floor the whole time","Arms and legs extended — hold without letting the back arch"]}})
+ ]},
+ {key:"upperC",day:"FRI",full:"Friday",name:"Upper C",focus:"Volume & Delt Emphasis (Lower Fatigue)",exercises:[
+  ex("1","Incline DB Press","3-1-1","10-12",{f:3,o:3,p:3,d:2},{f:"2",o:"1-2",p:"1",d:"3-4"},45,["Bench at 30-45° — this is a moderate-effort day, not a max-effort press","Full control, no need to chase failure here"],null,true),
+  ex("2A","Two-DB Bent-Over Row","2-1-2","10-12",{f:3,o:3,p:3,d:2},{f:"1-2",o:"1-2",p:"1",d:"3-4"},45,["Hinge at the hips, flat back throughout","Row both dumbbells to the lower ribs and squeeze the shoulder blades"],
+    {2:{name:"Kroc Row",cues:["Heavier one-arm row — a little body English is fine here","Focus on pulling the elbow high and back, controlled on the way down"]},
+     3:{name:"One-Arm DB Row",cues:["Flat back and brace the core","Drive the elbow toward the hip and squeeze the lat"]}}),
+  ex("2B","DB Chest Fly","2-1-2","12-15",{f:2,o:2,p:3,d:1},{f:"1-2 (last set 0-1)",o:"1-2 (last set 0-1)",p:"1 (last set 0)",d:"3-4"},45,["Slight bend in elbows held constant throughout the rep","Arc the dumbbells out and down to a stretch, then squeeze back up and together"],
+    {2:{name:"Incline DB Fly",cues:["Bench at 30-45°, same constant elbow bend as a flat fly","Feel the stretch across the upper chest at the bottom — don't drop elbows below shoulder level"]},
+     3:{name:"Svend Press",cues:["Squeeze a dumbbell (or plate) between both palms","Press straight out from the chest, keeping the squeeze on the whole time"]}}),
+  ex("3A","Lateral Raise","2-1-2","12-15",{f:3,o:3,p:4,d:2},{f:"1-2 (last set 0-1)",o:"1-2 (last set 0-1)",p:"1 (last set 0)",d:"3-4"},45,["Slight elbow bend and lead with the elbow","Use a lighter weight and control the motion"]),
+  ex("3B","Chest-Supported Rear Delt Fly","2-1-2","12-15",{f:3,o:3,p:4,d:2},{f:"1-2 (last set 0-1)",o:"1-2 (last set 0-1)",p:"1 (last set 0)",d:"3-4"},45,["Lie face-down on an incline bench set to 30-45°","Raise the dumbbells out to the sides, squeezing the rear delts — no swing possible in this position"]),
+  ex("4A","Standing DB Curl","2-0-2","10-15",{f:2,o:2,p:3,d:1},{f:"1-2 (last set 0-1)",o:"1-2 (last set 0-1)",p:"1 (last set 0)",d:"3-4"},45,["Elbows stay at your sides","Rotate to a palm-up grip as you curl"],
+    {2:{name:"Concentration Curl",cues:["Brace the elbow against the inner thigh","Full stretch, squeeze, and no swinging"]},
+     3:{name:"Drag Curl",cues:["Drag the dumbbells straight up along your torso, elbows drifting back","No forward swing — the bar path is vertical, not arced"]}}),
+  ex("4B","Overhead DB Triceps Ext.","2-1-2","10-15",{f:2,o:2,p:3,d:1},{f:"1-2 (last set 0-1)",o:"1-2 (last set 0-1)",p:"0-1 (last set 0)",d:"3-4"},45,["Point elbows forward","Use the long-head stretch behind the head"],
+    {2:{name:"Tate Press",cues:["Lying down, elbows flared out to the sides","Lower the dumbbells to touch near your chest, then press back up through the elbows"]},
+     3:{name:"Triceps Kickback",cues:["Hinge forward, upper arm parallel to the floor and still","Extend the forearm back until straight, squeeze, then control the return"]}})
  ]}
 ];
 
@@ -341,24 +398,45 @@ function calculateStats(){
   }
   return {sessions,sets,streak};
 }
-function getExerciseRecommendation(e,data,wi){
-  const p=data[e.code], n=e.sets[wi.phaseKey];
-  const reps=repLabel(e.range,wi.phaseKey,wi.idx);
-  if(p.checks.filter(Boolean).length<n)return `Finish ${n-p.checks.filter(Boolean).length} remaining set${n-p.checks.filter(Boolean).length===1?"":"s"}.`;
-  if(p.weight==="")return "Next time, log your working weight.";
-  return `Target ${reps}. If all sets reached the top of the range with good form, consider +2.5–5 lb next session.`;
+function suggestedIncrement(range){
+  return (range==="6-10"||range==="8-12"||range==="10-12")?5:2.5;
 }
-function showExerciseHistory(code){
+function getExerciseRecommendation(e,data,wi,week,workoutKey){
+  const p=data[e.code], n=e.sets[wi.phaseKey];
+  const doneCount=p.checks.filter(Boolean).length;
+  const reps=repLabel(e.range,wi.phaseKey,wi.idx);
+  if(doneCount<n)return `Finish ${n-doneCount} remaining set${n-doneCount===1?"":"s"}.`;
+  const isBlockStart=(week===1||week===5||week===9);
+  if(isBlockStart){
+    if(p.weight==="")return `New exercise this phase — find a comfortable weight for ${reps} reps at RIR ${e.rir[wi.phaseKey]}, then log it.`;
+    return `Target ${reps} reps at RIR ${e.rir[wi.phaseKey]}.`;
+  }
+  const prevData=getProgress(week-1,workoutKey);
+  const prevP=prevData[e.code];
+  if(!prevP || prevP.weight===""){
+    return p.weight===""?"Log your working weight for next time.":`Target ${reps} reps at RIR ${e.rir[wi.phaseKey]}.`;
+  }
+  const prevWeight=parseFloat(prevP.weight);
+  const prevAllDone=prevP.checks.length && prevP.checks.every(Boolean);
+  if(isNaN(prevWeight))return `Target ${reps} reps at RIR ${e.rir[wi.phaseKey]}.`;
+  if(prevAllDone){
+    const inc=suggestedIncrement(e.range);
+    const next=(prevWeight+inc).toFixed(1).replace(/\.0$/,"");
+    return `Last time: ${prevP.weight} lb, all sets completed. Try ${next} lb today for ${reps} reps.`;
+  }
+  return `Last time: ${prevP.weight} lb, sets incomplete. Repeat ${prevP.weight} lb and focus on completing all sets with good form.`;
+}
+function showExerciseHistory(code,workoutKey){
+  const wk=WORKOUTS.find(x=>x.key===workoutKey);
   const rows=[];
   for(let w=1;w<=12;w++){
-    for(const wk of WORKOUTS){
-      const e=wk.exercises.find(x=>x.code===code);
-      if(!e)continue;
-      const d=getProgress(w,wk.key);
-      if(d[code]?.weight)rows.push({week:w,workout:wk.name,weight:d[code].weight,done:d[code].checks.filter(Boolean).length});
+    const d=getProgress(w,wk.key);
+    if(d[code]?.weight){
+      const resolved=resolvedExercises(wk,w).find(x=>x.code===code);
+      rows.push({week:w,name:resolved?resolved.name:"",weight:d[code].weight,done:d[code].checks.filter(Boolean).length});
     }
   }
-  const body=rows.length?rows.map(x=>`<div class="flex justify-between py-2 border-b" style="border-color:var(--line)"><span>W${x.week} · ${x.workout}</span><b>${esc(x.weight)} lb</b></div>`).join(""):`<div class="text-sm" style="color:var(--muted)">No previous weight entries yet.</div>`;
+  const body=rows.length?rows.map(x=>`<div class="flex justify-between py-2 border-b" style="border-color:var(--line)"><span>W${x.week} · ${esc(x.name)}</span><b>${esc(x.weight)} lb</b></div>`).join(""):`<div class="text-sm" style="color:var(--muted)">No previous weight entries yet.</div>`;
   document.body.insertAdjacentHTML("beforeend",`<div class="modal" onclick="if(event.target===this)this.remove()"><div class="sheet"><div class="flex justify-between items-center mb-3"><div class="section-title">Exercise History</div><button class="secondary" onclick="this.closest('.modal').remove()">Close</button></div>${body}</div></div>`);
 }
 
@@ -443,7 +521,7 @@ function renderAdvanced(){
   } else if(advState.tab==="workout"){
     content=`<div class="px-4 pt-5 pb-24"><div class="flex justify-between items-end"><div><div class="mini-label">${workout.full}</div><div class="disp text-4xl">${workout.name}</div></div><span class="chip">${done}/${total} sets</span></div><div class="progress-track mt-3"><div class="progress-fill" style="width:${pct}%"></div></div>
     <div class="flex gap-2 mt-4 overflow-x-auto pb-1">${WORKOUTS.map(w=>`<button class="secondary whitespace-nowrap ${w.key===state.workoutKey?"!border-[var(--amber)]":""}" onclick="setWorkout('${w.key}');switchTab('workout')">${w.day} · ${w.name}</button>`).join("")}</div>
-    <div class="space-y-3 mt-4">${workout.exercises.map(e=>{const n=e.sets[wi.phaseKey],p=data[e.code],r=repLabel(e.range,wi.phaseKey,wi.idx),rec=getExerciseRecommendation(e,data,wi);return `<div class="rounded-xl p-3" style="background:var(--navy2);border:1px solid ${p.checks.every(Boolean)?"var(--green)":"var(--line)"}"><div class="flex justify-between"><div><div><span style="color:var(--amber);font-weight:800">${e.code}</span> <b>${esc(e.name)}</b></div><div class="text-xs mt-1" style="color:var(--muted)">${n} × ${r} · tempo ${e.tempo} · RIR ${e.rir[wi.phaseKey]}</div></div><button onclick="showExerciseHistory('${e.code}')" class="chip">History</button></div>
+    <div class="space-y-3 mt-4">${resolvedExercises(workout,state.week).map(e=>{const n=e.sets[wi.phaseKey],p=data[e.code],r=repLabel(e.range,wi.phaseKey,wi.idx),rec=getExerciseRecommendation(e,data,wi,state.week,workout.key);return `<div class="rounded-xl p-3" style="background:var(--navy2);border:1px solid ${p.checks.every(Boolean)?"var(--green)":"var(--line)"}"><div class="flex justify-between"><div><div><span style="color:var(--amber);font-weight:800">${e.code}</span> <b>${esc(e.name)}</b>${e.anchor?` <span title="Performance anchor — tracked for progress" style="color:var(--amber)">★</span>`:""}</div><div class="text-xs mt-1" style="color:var(--muted)">${n} × ${r} · tempo ${e.tempo} · RIR ${e.rir[wi.phaseKey]}</div></div><button onclick="showExerciseHistory('${e.code}','${workout.key}')" class="chip">History</button></div>
     <div class="flex items-center gap-2 mt-3"><input class="field" style="max-width:80px;text-align:center" type="number" step=".5" placeholder="lb" value="${esc(p.weight)}" oninput="setWeight('${e.code}',this.value)">${Array.from({length:n},(_,i)=>`<button onclick="toggleSet('${e.code}',${i},${e.rest})" class="tap flex-1 py-2 rounded-lg flex flex-col items-center gap-0.5" style="background:var(--navy);border:1px solid var(--line);color:${p.checks[i]?"var(--green)":"var(--muted)"}">${icon(p.checks[i]?"check":"circle",20)}<div class="text-[9px]">Set ${i+1}</div></button>`).join("")}</div><div class="text-[10px] mt-2" style="color:var(--muted)">${rec}</div><button class="text-xs mt-2" style="color:var(--amber)" onclick="toggleCue('${e.code}')">Technique cues ▾</button>${state.openCue===e.code?`<div class="mt-2 text-xs space-y-1">${e.cues.map(c=>`<div>• ${esc(c)}</div>`).join("")}</div>`:""}</div>`}).join("")}</div>
     <div id="advancedTimer">${timerBarAdvanced()}</div>
     <div class="rounded-xl p-4 mt-4" style="background:var(--navy2);border:1px solid var(--line)"><div class="mini-label">Session RPE</div><div class="flex gap-1 mt-2">${[6,7,8,9,10].map(v=>`<button class="secondary flex-1 ${String(advState.sessionRPE[key])===String(v)?"!border-[var(--amber)]":""}" onclick="setRPE(${v});renderAdvanced()">${v}</button>`).join("")}</div><textarea class="field mt-3" rows="3" placeholder="Workout notes: energy, form, pain-free/limitations, PRs..." onchange="setSessionNote(this.value)">${esc(advState.notes[key]||"")}</textarea><button class="primary mt-3 w-full" onclick="markComplete();recordCompletedSession();switchTab('history')">Finish & Log Session</button></div></div>`;
